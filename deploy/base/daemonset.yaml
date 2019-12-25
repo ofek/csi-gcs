@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: csi-gcs
+spec:
+  selector:
+    matchLabels:
+      app: csi-gcs
+  template:
+    metadata:
+      labels:
+        app: csi-gcs
+    spec:
+      hostNetwork: true
+      serviceAccount: csi-gcs
+      containers:
+      - name: csi-node-driver-registrar
+        image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+        imagePullPolicy: Always
+        args:
+        - "--v=5"
+        - "--csi-address=/csi/csi.sock"
+        - "--kubelet-registration-path=/var/lib/kubelet/plugins/storage.csi.cloud.google.com/csi.sock"
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: registration-dir
+          mountPath: /registration
+        - name: socket-dir
+          mountPath: /csi
+      - name: csi-gcs
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN"]
+          allowPrivilegeEscalation: true
+        image: quay.io/ofek/csi-gcs:latest
+        imagePullPolicy: Always
+        args:
+        - "--node-name=$(KUBE_NODE_NAME)"
+        # https://github.com/kubernetes/community/blob/master/contributors/devel/sig-instrumentation/logging.md
+        - "--v=5"
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: fuse-device
+          mountPath: /dev/fuse
+        - name: mountpoint-dir
+          mountPath: /var/lib/kubelet/pods
+          mountPropagation: Bidirectional
+        - name: socket-dir
+          mountPath: /csi
+      volumes:
+      - name: fuse-device
+        hostPath:
+          path: /dev/fuse
+      # https://kubernetes-csi.github.io/docs/deploying.html#driver-volume-mounts
+      - name: socket-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins/storage.csi.cloud.google.com
+          type: DirectoryOrCreate
+      - name: mountpoint-dir
+        hostPath:
+          path: /var/lib/kubelet/pods
+          type: Directory
+      - name: registration-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins_registry
+          type: Directory

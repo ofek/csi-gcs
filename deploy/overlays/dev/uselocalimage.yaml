@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: csi-gcs
+spec:
+  selector:
+    matchLabels:
+      app: csi-gcs
+  template:
+    metadata:
+      labels:
+        app: csi-gcs
+    spec:
+      containers:
+      - name: csi-gcs
+        imagePullPolicy: Never

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: csi-gcs-test
+spec:
+  template:
+    spec:
+      containers:
+      - name: writer
+        image: busybox
+        command:
+        - sleep
+        - infinity
+        volumeMounts:
+        - name: csi-gcs-pvc
+          mountPath: /data
+      - name: reader
+        image: busybox
+        command:
+        - sleep
+        - infinity
+        volumeMounts:
+        - name: csi-gcs-pvc
+          mountPath: /data
+          readOnly: true
+      volumes:
+      - name: csi-gcs-pvc
+        persistentVolumeClaim:
+          claimName: csi-gcs-pvc
