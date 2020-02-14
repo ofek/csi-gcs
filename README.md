@@ -21,6 +21,7 @@ An easy-to-use, cross-platform, and highly optimized Kubernetes CSI driver for m
 - [Permission](#permission)
 - [Dynamic provisioning](#dynamic-provisioning)
 - [License](#license)
+- [Disclaimer](#disclaimer)
 
 ## Getting started
 
@@ -187,3 +188,7 @@ Currently, the buckets used must already exist. PRs adding
 - [MIT License](https://choosealicense.com/licenses/mit)
 
 at your option.
+
+## Disclaimer
+
+This is not an official Google product.
