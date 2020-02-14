@@ -3,7 +3,7 @@ kind: Kustomization
 bases:
 - ../../base
 images:
-- name: quay.io/ofek/csi-gcs
+- name: docker.io/ofekmeister/csi-gcs
   newTag: dev
 patchesStrategicMerge:
 - uselocalimage.yaml

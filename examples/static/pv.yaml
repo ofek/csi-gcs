@@ -10,7 +10,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: csi-gcs-test-sc
   csi:
-    driver: storage.csi.cloud.google.com
+    driver: gcs.csi.ofek.dev
     volumeHandle: csi-gcs
     nodePublishSecretRef:
       name: csi-gcs-secret

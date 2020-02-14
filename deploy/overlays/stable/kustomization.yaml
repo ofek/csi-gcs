@@ -3,7 +3,7 @@ kind: Kustomization
 bases:
 - ../../base
 images:
-- name: quay.io/ofek/csi-gcs
+- name: docker.io/ofekmeister/csi-gcs
   newTag: v0.1.0
 - name: quay.io/k8scsi/csi-node-driver-registrar
   newName: gcr.io/gke-release/csi-node-driver-registrar

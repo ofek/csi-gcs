@@ -20,7 +20,7 @@ spec:
         args:
         - "--v=5"
         - "--csi-address=/csi/csi.sock"
-        - "--kubelet-registration-path=/var/lib/kubelet/plugins/storage.csi.cloud.google.com/csi.sock"
+        - "--kubelet-registration-path=/var/lib/kubelet/plugins/gcs.csi.ofek.dev/csi.sock"
         env:
         - name: KUBE_NODE_NAME
           valueFrom:
@@ -38,7 +38,7 @@ spec:
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
-        image: quay.io/ofek/csi-gcs:latest
+        image: docker.io/ofekmeister/csi-gcs:latest
         imagePullPolicy: Always
         args:
         - "--node-name=$(KUBE_NODE_NAME)"
@@ -64,7 +64,7 @@ spec:
       # https://kubernetes-csi.github.io/docs/deploying.html#driver-volume-mounts
       - name: socket-dir
         hostPath:
-          path: /var/lib/kubelet/plugins/storage.csi.cloud.google.com
+          path: /var/lib/kubelet/plugins/gcs.csi.ofek.dev
           type: DirectoryOrCreate
       - name: mountpoint-dir
         hostPath:

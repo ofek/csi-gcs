@@ -6,9 +6,9 @@ from invoke import task
 VERSION = '0.1.0'
 GCSFUSE_VERSION = '0.27.0'
 
-REPO = 'ofek'
+REPO = 'ofekmeister'
 IMAGE = 'csi-gcs'
-DRIVER_NAME = f'quay.io/{REPO}/{IMAGE}'
+DRIVER_NAME = f'{REPO}/{IMAGE}'
 IMAGE_LATEST = f'{DRIVER_NAME}:latest'
 IMAGE_DEV = f'{DRIVER_NAME}:dev'
 

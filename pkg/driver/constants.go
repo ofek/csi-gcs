@@ -1,7 +1,7 @@
 package driver
 
 const (
-	CSIDriverName   = "storage.csi.cloud.google.com"
+	CSIDriverName   = "gcs.csi.ofek.dev"
 	BucketMountPath = "/var/lib/kubelet/pods"
 	KeyStoragePath  = "/tmp/keys"
 )

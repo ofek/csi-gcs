@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1beta1
 kind: CSIDriver
 metadata:
-  name: storage.csi.cloud.google.com
+  name: gcs.csi.ofek.dev
 # https://kubernetes-csi.github.io/docs/csi-driver-object.html
 spec:
   attachRequired: false

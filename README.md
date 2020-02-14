@@ -1,6 +1,6 @@
 # `csi-gcs`
 
-[![Docker Repository on Quay](https://quay.io/repository/ofek/csi-gcs/status "Docker Repository on Quay")](https://quay.io/repository/ofek/csi-gcs)
+[![Docker - Pulls](https://img.shields.io/docker/pulls/ofekmeister/csi-gcs.svg)](https://hub.docker.com/r/ofekmeister/csi-gcs)
 [![License - MIT/Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-9400d3.svg)](https://choosealicense.com/licenses)
 [![Say Thanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/ofek)
 
@@ -58,8 +58,8 @@ pod/csi-gcs-95xgx                            2/2     Running   0          1m
 NAME                              DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
 daemonset.extensions/csi-gcs      1         1         1       1            1           <none>          1m
 
-NAME                                                    CREATED AT
-csidriver.storage.k8s.io/storage.csi.cloud.google.com   2020-01-26T15:49:44Z
+NAME                                        CREATED AT
+csidriver.storage.k8s.io/gcs.csi.ofek.dev   2020-01-26T15:49:44Z
 ```
 
 ## Usage
