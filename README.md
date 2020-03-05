@@ -41,7 +41,7 @@ Like other CSI drivers, a [DaemonSet](https://kubernetes.io/docs/concepts/worklo
 Run
 
 ```console
-kubectl apply -k github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master
+kubectl apply -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master"
 ```
 
 Now the output from running the command
@@ -68,7 +68,7 @@ csidriver.storage.k8s.io/gcs.csi.ofek.dev   2020-01-26T15:49:44Z
 Let's run an example application!
 
 ```console
-kubectl apply -k github.com/ofek/csi-gcs/examples/static?ref=master
+kubectl apply -k "github.com/ofek/csi-gcs/examples/static?ref=master"
 ```
 
 Confirm it's working by running
@@ -119,8 +119,8 @@ touch: /data/forbidden.txt: Read-only file system
 To clean up everything, run the following commands
 
 ```console
-kubectl delete -k github.com/ofek/csi-gcs/examples/static?ref=master
-kubectl delete -k github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master
+kubectl delete -k "github.com/ofek/csi-gcs/examples/static?ref=master"
+kubectl delete -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master"
 kubectl delete secret csi-gcs-secret
 ```
 
