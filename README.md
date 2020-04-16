@@ -177,8 +177,22 @@ to create a key file.
 
 ## Dynamic provisioning
 
-Currently, the buckets used must already exist. PRs adding
-[this ability](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-usage-go) are extremely welcome!
+Buckets that do not exist, will be created.
+
+### Location
+
+The bucket location is resolved in the following order:
+
+1. `location` in `nodePublishSecretRef`
+2. `location` in `volumeAttributes`
+3. `US` default
+
+### Project ID
+
+The bucket location is resolved in the following order:
+
+1. `projectId` in `nodePublishSecretRef`
+2. `projectId` in `volumeAttributes`
 
 ## License
 

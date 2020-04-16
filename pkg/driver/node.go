@@ -15,6 +15,10 @@ import (
 	"k8s.io/klog"
 
 	"github.com/ofek/csi-gcs/pkg/util"
+
+	"cloud.google.com/go/storage"
+
+	"google.golang.org/api/option"
 )
 
 func (d *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
@@ -39,14 +43,14 @@ func (d *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishV
 
 	options := req.VolumeContext
 
-	var bucket string
+	var bucketName string
 	if secretBucket, secretBucketSelected := req.Secrets["bucket"]; secretBucketSelected {
-		bucket = secretBucket
+		bucketName = secretBucket
 	} else if contextBucket, contextBucketSelected := options["bucket"]; contextBucketSelected {
-		bucket = contextBucket
+		bucketName = contextBucket
 	} else {
 		klog.V(2).Infof("A bucket was not selected, defaulting to the volume name %s", volumeId)
-		bucket = volumeId
+		bucketName = volumeId
 	}
 
 	keyFile, keyFileSelected := options["key_file"]
@@ -72,6 +76,47 @@ func (d *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishV
 		keyFile = tempKeyFile
 	}
 
+	// Creates a client.
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
+	}
+
+	// Creates a Bucket instance.
+	bucket := client.Bucket(bucketName)
+
+	buecketAttrs, err := bucket.Attrs(ctx)
+	if err == nil {
+		klog.V(2).Infof("Bucket '%s' exists", bucketName)
+	}
+
+	if buecketAttrs == nil {
+		klog.V(2).Infof("Bucket '%s' does not exist, creating", bucketName)
+
+		var projectId string
+		if secretProjectId, secretProjectIdSelected := req.Secrets["projectId"]; secretProjectIdSelected {
+			projectId = secretProjectId
+		} else if contextProjectId, contextProjectIdSelected := options["projectId"]; contextProjectIdSelected {
+			projectId = contextProjectId
+		} else {
+			return nil, status.Errorf(codes.Internal, "Project Id not provided, bucket can't be created: %v", err)
+		}
+
+		var bucketLocation string
+		if secretBucketLocation, secretBucketLocationSelected := req.Secrets["location"]; secretBucketLocationSelected {
+			bucketLocation = secretBucketLocation
+		} else if contextBucketLocation, contextBucketLocationSelected := options["location"]; contextBucketLocationSelected {
+			bucketLocation = contextBucketLocation
+		} else {
+			bucketLocation = "US"
+			klog.V(2).Infof("Bucket location US default", bucketName)
+		}
+
+		if err := bucket.Create(ctx, projectId, &storage.BucketAttrs{Location: bucketLocation}); err != nil {
+			return nil, status.Errorf(codes.Internal, "Failed to create bucket: %v", err)
+		}
+	}
+
 	allFlags := []string{fmt.Sprintf("--key-file=%s", keyFile), "-o=allow_other"}
 	if flags, exists := options["flags"]; exists {
 		parsedFlags := strings.Fields(flags)
@@ -84,17 +129,17 @@ func (d *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishV
 		return nil, status.Errorf(codes.Internal, "Unable to create target path %s: %v", volumePath, err)
 	}
 
-	klog.V(1).Infof("Mounting bucket %s to %s with: %v", bucket, volumePath, allFlags)
+	klog.V(1).Infof("Mounting bucket %s to %s with: %v", bucketName, volumePath, allFlags)
 	cmd := exec.Command("gcsfuse", allFlags...)
-	cmd.Args = append(cmd.Args, bucket, volumePath)
+	cmd.Args = append(cmd.Args, bucketName, volumePath)
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error (code %s) mounting bucket %s:\n%s", err, bucket, out)
+		return nil, status.Errorf(codes.Internal, "Error (code %s) mounting bucket %s:\n%s", err, bucketName, out)
 	}
 
 	d.volumes[volumeId] = &GCSVolume{
-		bucket:  bucket,
+		bucket:  bucketName,
 		count:   1,
 		flags:   allFlags,
 		keyFile: keyFile,

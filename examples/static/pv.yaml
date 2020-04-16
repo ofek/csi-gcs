@@ -15,3 +15,6 @@ spec:
     nodePublishSecretRef:
       name: csi-gcs-secret
       namespace: default
+    volumeAttributes:
+      bucket: csi-gcs-test-foo
+      projectId: csi-gcs-test
