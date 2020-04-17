@@ -10,17 +10,10 @@ ENV UPX ${upx_flags}
 
 RUN apk add --update --no-cache fuse fuse-dev git upx
 
-RUN mkdir -p ${DRIVER}
-WORKDIR ${DRIVER}
-
-COPY go.mod go.sum ${DRIVER}
-COPY cmd ${DRIVER}/cmd
-COPY pkg ${DRIVER}/pkg
-
-# Build the driver
-RUN go build -o /tmp/bin/driver -ldflags "all=${global_ldflags}" -ldflags "-X github.com/ofek/csi-gcs/pkg/driver.driverVersion=${version} ${global_ldflags}" ./cmd
-
 WORKDIR ${GOPATH}
+
+# Create Tmp Bin Dir
+RUN mkdir /tmp/bin
 
 # Install gcsfuse using the specified version or commit hash
 RUN go get -u github.com/googlecloudplatform/gcsfuse
@@ -30,6 +23,16 @@ RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsf
 
 # We don't need mount(8) compatibility as we call the binary directly, so only copy that
 RUN mv /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
+
+RUN mkdir -p ${DRIVER}
+WORKDIR ${DRIVER}
+
+COPY go.mod go.sum ${DRIVER}
+COPY cmd ${DRIVER}/cmd
+COPY pkg ${DRIVER}/pkg
+
+# Build the driver
+RUN go build -o /tmp/bin/driver -ldflags "all=${global_ldflags}" -ldflags "-X github.com/ofek/csi-gcs/pkg/driver.driverVersion=${version} ${global_ldflags}" ./cmd
 
 # Compress the binaries
 RUN if [ "${UPX}" != "" ]; then \
@@ -48,9 +51,6 @@ LABEL "org.opencontainers.image.title"="csi-gcs"
 
 RUN apk add --update --no-cache ca-certificates fuse && rm -rf /tmp/*
 
-# Copy the binaries
-COPY --from=build /tmp/bin/* /usr/local/bin/
-
 # Allow non-root users to specify the allow_other or allow_root mount options
 RUN echo "user_allow_other" > /etc/fuse.conf
 
@@ -60,3 +60,6 @@ RUN mkdir -p /var/lib/kubelet/pods /tmp/keys
 WORKDIR /
 
 ENTRYPOINT ["/usr/local/bin/driver"]
+
+# Copy the binaries
+COPY --from=build /tmp/bin/* /usr/local/bin/
