@@ -1,13 +1,21 @@
 package util
 
 import (
+	"context"
 	"fmt"
+	"hash/crc32"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+
+	"cloud.google.com/go/storage"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"k8s.io/klog"
 )
 
 func ParseEndpoint(endpoint string) (string, string, error) {
@@ -69,4 +77,68 @@ func CreateDir(d string) error {
 	}
 
 	return nil
+}
+
+func GetKey(secrets map[string]string, options map[string]string, keyStoragePath string) (string, error) {
+	if _, err := os.Stat(keyStoragePath); os.IsNotExist(err) {
+		os.Mkdir(keyStoragePath, 0700)
+	}
+
+	keyContents, keyNameExists := secrets["key"]
+	if !keyNameExists {
+		return "", status.Errorf(codes.Internal, "Secret '%s' is unavailable", "key")
+	}
+
+	klog.V(5).Info("Saving key contents to a temporary location")
+	keyFile, err := CreateFile(keyStoragePath, keyContents)
+	if err != nil {
+		return "", status.Errorf(codes.Internal, "Unable to save secret 'key' to %s", keyStoragePath)
+	}
+
+	return keyFile, nil
+}
+
+func CleanupKey(keyFile string, keyStoragePath string) {
+	location := filepath.Dir(keyFile)
+	if location == keyStoragePath {
+		if err := os.Remove(keyFile); err != nil {
+			klog.Warningf("Error removing temporary key file %s: %s", keyFile, err)
+		}
+	}
+}
+
+func BucketName(volumeId string) string {
+	// return volumeId
+	var crc32Hash = crc32.ChecksumIEEE([]byte(volumeId))
+
+	if len(volumeId) > 32 {
+		volumeId = volumeId[0:32]
+	}
+
+	return fmt.Sprintf("%s-%x", strings.ToLower(volumeId), crc32Hash)
+}
+
+func BucketCapacity(attrs *storage.BucketAttrs) (int64, error) {
+	for labelName, labelValue := range attrs.Labels {
+		if labelName != "capacity" {
+			continue
+		}
+
+		capacity, err := strconv.ParseInt(labelValue, 10, 64)
+		if err != nil {
+			return 0, status.Errorf(codes.Internal, "Failed to parse bucket capacity: %v", labelValue)
+		}
+
+		return capacity, nil
+	}
+
+	return 0, nil
+}
+
+func SetBucketCapacity(ctx context.Context, bucket *storage.BucketHandle, capacity int64) (attrs *storage.BucketAttrs, err error) {
+	var uattrs = storage.BucketAttrsToUpdate{}
+
+	uattrs.SetLabel("capacity", strconv.FormatInt(capacity, 10))
+
+	return bucket.Update(ctx, uattrs)
 }

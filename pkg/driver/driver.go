@@ -73,6 +73,7 @@ func (d *GCSDriver) Run() error {
 	d.server = grpc.NewServer(grpc.UnaryInterceptor(logHandler))
 	csi.RegisterIdentityServer(d.server, d)
 	csi.RegisterNodeServer(d.server, d)
+	csi.RegisterControllerServer(d.server, d)
 	return d.server.Serve(listener)
 }
 

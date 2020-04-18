@@ -3,5 +3,7 @@ kind: Kustomization
 namespace: kube-system
 resources:
 - driver.yaml
-- rbac.yaml
-- daemonset.yaml
+- node-rbac.yaml
+- node-daemonset.yaml
+- controller-rbac.yaml
+- controller-statefulset.yaml

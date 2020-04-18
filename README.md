@@ -29,7 +29,7 @@ After acquiring a [service account key](#permission), create a [secret](https://
 call it `csi-gcs-secret` in the following example):
 
 ```console
-kubectl create secret generic csi-gcs-secret --from-literal=bucket=<BUCKET_NAME> --from-file=key=<PATH_TO_SERVICE_ACCOUNT_KEY>
+kubectl create secret generic csi-gcs-secret --from-literal=bucket=<BUCKET_NAME> --from-file=key=<PATH_TO_SERVICE_ACCOUNT_KEY> --from-literal=project=<GCS_PROJECT_NAME>
 ```
 
 Note we store the desired bucket in the secret for brevity only, there are [other ways](#bucket) to select a bucket.
@@ -146,8 +146,8 @@ Alternatively, you can also mount service account keys directly in the driver's 
 
 The bucket name is resolved in the following order:
 
-1. `bucket` in `nodePublishSecretRef`
-2. `bucket` in `volumeAttributes`
+1. `bucket` in `volumeAttributes`
+2. `bucket` in secret referenced by `nodePublishSecretRef`
 3. `volumeHandle`
 
 ### Extra flags
@@ -177,8 +177,37 @@ to create a key file.
 
 ## Dynamic provisioning
 
-Currently, the buckets used must already exist. PRs adding
-[this ability](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-usage-go) are extremely welcome!
+To use dynamic provision, create a `StorageClass`:
+
+```yml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: storage-class-name
+provisioner: gcs.csi.ofek.dev
+parameters:
+  csi.storage.k8s.io/node-publish-secret-name: csi-gcs-secret
+  csi.storage.k8s.io/node-publish-secret-namespace: default
+  csi.storage.k8s.io/provisioner-secret-name: csi-gcs-secret
+  csi.storage.k8s.io/provisioner-secret-namespace: default
+  gcs.csi.ofek.dev/location: US
+  gcs.csi.ofek.dev/project-id: csi-gcs-test
+```
+
+To install an example, run:
+
+```console
+kubectl apply -k "github.com/ofek/csi-gcs/examples/dynamic?ref=master"
+```
+
+### Annotations
+
+* `csi.storage.k8s.io/node-publish-secret-name` - The name of the secret allowed to mount created buckets
+* `csi.storage.k8s.io/node-publish-secret-namespace` - The namespace of the secret allowed to mount created buckets
+* `csi.storage.k8s.io/provisioner-secret-name` - The name of the secret allowed to create buckets
+* `csi.storage.k8s.io/provisioner-secret-namespace` - The namespace of the secret allowed to create buckets
+* `gcs.csi.ofek.dev/location` - The location to create buckets at (default `US`), see https://cloud.google.com/storage/docs/locations#available_locations
+* `gcs.csi.ofek.dev/project-id` - The project to create the buckets in
 
 ## License
 

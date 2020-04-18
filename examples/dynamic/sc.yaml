@@ -9,3 +9,5 @@ reclaimPolicy: Retain
 parameters:
   csi.storage.k8s.io/node-publish-secret-name: csi-gcs-secret
   csi.storage.k8s.io/node-publish-secret-namespace: default
+  csi.storage.k8s.io/provisioner-secret-name: csi-gcs-secret
+  csi.storage.k8s.io/provisioner-secret-namespace: default
