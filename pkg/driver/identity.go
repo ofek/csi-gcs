@@ -19,7 +19,17 @@ func (d *GCSDriver) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoReq
 func (d *GCSDriver) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
 	klog.V(4).Infof("Method GetPluginCapabilities called with: %+v", req)
 
-	return &csi.GetPluginCapabilitiesResponse{}, nil
+	return &csi.GetPluginCapabilitiesResponse{
+		Capabilities: []*csi.PluginCapability{
+			{
+				Type: &csi.PluginCapability_Service_{
+					Service: &csi.PluginCapability_Service{
+						Type: csi.PluginCapability_Service_CONTROLLER_SERVICE,
+					},
+				},
+			},
+		},
+	}, nil
 }
 
 func (d *GCSDriver) Probe(ctx context.Context, req *csi.ProbeRequest) (*csi.ProbeResponse, error) {

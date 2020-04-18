@@ -3,9 +3,7 @@ package driver
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -40,36 +38,18 @@ func (d *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishV
 	options := req.VolumeContext
 
 	var bucket string
-	if secretBucket, secretBucketSelected := req.Secrets["bucket"]; secretBucketSelected {
-		bucket = secretBucket
-	} else if contextBucket, contextBucketSelected := options["bucket"]; contextBucketSelected {
+	if contextBucket, contextBucketSelected := options["bucket"]; contextBucketSelected {
 		bucket = contextBucket
+	} else if secretBucket, secretBucketSelected := req.Secrets["bucket"]; secretBucketSelected {
+		bucket = secretBucket
 	} else {
 		klog.V(2).Infof("A bucket was not selected, defaulting to the volume name %s", volumeId)
 		bucket = volumeId
 	}
 
-	keyFile, keyFileSelected := options["key_file"]
-	if keyFileSelected {
-		klog.V(2).Infof("Using service account key located at %s", keyFile)
-	} else {
-		keyName, keyNameSelected := options["key_name"]
-		if !keyNameSelected {
-			keyName = "key"
-		}
-		klog.V(2).Infof("Using secret name '%s' as the service account key", keyName)
-
-		keyContents, keyNameExists := req.Secrets[keyName]
-		if !keyNameExists {
-			return nil, status.Errorf(codes.Internal, "Secret '%s' is unavailable", keyName)
-		}
-
-		klog.V(5).Info("Saving key contents to a temporary location")
-		tempKeyFile, err := util.CreateFile(KeyStoragePath, keyContents)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "Unable to save secret '%s' to %s", keyName, KeyStoragePath)
-		}
-		keyFile = tempKeyFile
+	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
+	if err != nil {
+		return nil, err
 	}
 
 	allFlags := []string{fmt.Sprintf("--key-file=%s", keyFile), "-o=allow_other"}
@@ -133,12 +113,7 @@ func (d *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpubl
 		return nil, status.Errorf(codes.Internal, "Error (code %s) un-mounting bucket %s:\n%s", err, v.bucket, out)
 	}
 
-	location := filepath.Dir(v.keyFile)
-	if location == KeyStoragePath {
-		if err := os.Remove(v.keyFile); err != nil {
-			klog.Warningf("Error removing temporary key file %s: %s", v.keyFile, err)
-		}
-	}
+	util.CleanupKey(v.keyFile, KeyStoragePath)
 
 	delete(d.volumes, volumeId)
 

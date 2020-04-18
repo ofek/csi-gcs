@@ -1,16 +1,33 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: csi-gcs
+  name: csi-gcs-node
 spec:
   selector:
     matchLabels:
-      app: csi-gcs
+      app: csi-gcs-node
   template:
     metadata:
       labels:
-        app: csi-gcs
+        app: csi-gcs-node
     spec:
       containers:
-      - name: csi-gcs
+      - name: csi-gcs-node
+        imagePullPolicy: Never
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: csi-gcs-controller
+spec:
+  selector:
+    matchLabels:
+      app: csi-gcs-controller
+  template:
+    metadata:
+      labels:
+        app: csi-gcs-controller
+    spec:
+      containers:
+      - name: csi-gcs-controller
         imagePullPolicy: Never

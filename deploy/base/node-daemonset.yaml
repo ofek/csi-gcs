@@ -1,27 +1,31 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: csi-gcs
+  name: csi-gcs-node
 spec:
   selector:
     matchLabels:
-      app: csi-gcs
+      app: csi-gcs-node
   template:
     metadata:
       labels:
-        app: csi-gcs
+        app: csi-gcs-node
     spec:
       hostNetwork: true
-      serviceAccount: csi-gcs
+      serviceAccount: csi-gcs-node
       containers:
       - name: csi-node-driver-registrar
         image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
         imagePullPolicy: Always
         args:
         - "--v=5"
-        - "--csi-address=/csi/csi.sock"
-        - "--kubelet-registration-path=/var/lib/kubelet/plugins/gcs.csi.ofek.dev/csi.sock"
+        - "--csi-address=$(ADDRESS)"
+        - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
         env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: DRIVER_REG_SOCK_PATH
+          value: /var/lib/kubelet/plugins/gcs.csi.ofek.dev/csi.sock
         - name: KUBE_NODE_NAME
           valueFrom:
             fieldRef:
@@ -32,7 +36,7 @@ spec:
           mountPath: /registration
         - name: socket-dir
           mountPath: /csi
-      - name: csi-gcs
+      - name: csi-gcs-node
         securityContext:
           privileged: true
           capabilities:
