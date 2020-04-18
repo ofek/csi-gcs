@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
@@ -111,8 +112,8 @@ func BucketName(volumeId string) string {
 	// return volumeId
 	var crc32Hash = crc32.ChecksumIEEE([]byte(volumeId))
 
-	if len(volumeId) > 32 {
-		volumeId = volumeId[0:32]
+	if len(volumeId) > 48 {
+		volumeId = volumeId[0:48]
 	}
 
 	return fmt.Sprintf("%s-%x", strings.ToLower(volumeId), crc32Hash)
@@ -141,4 +142,21 @@ func SetBucketCapacity(ctx context.Context, bucket *storage.BucketHandle, capaci
 	uattrs.SetLabel("capacity", strconv.FormatInt(capacity, 10))
 
 	return bucket.Update(ctx, uattrs)
+}
+
+func BucketExists(ctx context.Context, bucket *storage.BucketHandle) (exists bool, err error) {
+	query := &storage.Query{Prefix: ""}
+
+	it := bucket.Objects(ctx, query)
+	_, err = it.Next()
+
+	if err == iterator.Done {
+		return true, nil
+	} else if err.Error() == "storage: bucket doesn't exist" {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
