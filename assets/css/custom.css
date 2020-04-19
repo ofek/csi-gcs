@@ -1,0 +1,11 @@
+.md-typeset .tabbed-set {
+  border: 1px solid #eee;
+}
+.md-typeset .tabbed-content {
+  padding: 0.5em 1em;
+}
+
+.md-typeset h5 {
+  color: var(--md-default-fg-color);
+  text-transform: none;
+}
