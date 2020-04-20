@@ -48,6 +48,6 @@ def build(ctx, release=False, compress=False, version=VERSION, gcsfuse=GCSFUSE_V
         'version': f'The desired version (default: {VERSION})',
     }
 )
-def push(ctx, version=VERSION):
+def deploy(ctx, version=VERSION):
     ctx.run(f'docker push {image_name(version)}', echo=True)
     ctx.run(f'docker push {IMAGE_LATEST}', echo=True)
