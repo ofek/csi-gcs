@@ -95,7 +95,7 @@ parameters:
   ...
 ```
 
-### Parameters
+### Storage Class Parameters
 
 | Annotation | Description |
 | --- | --- |
@@ -105,6 +105,14 @@ parameters:
 | `csi.storage.k8s.io/provisioner-secret-namespace` | The namespace of the secret allowed to create buckets |
 | `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
 | `gcs.csi.ofek.dev/location` | The [location][gcs-location] to create buckets at (default `US` multi-region) |
+
+### Persistent Volume Claim Parameters
+
+| Annotation | Description |
+| --- | --- |
+| `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
+| `gcs.csi.ofek.dev/location` | The [location][gcs-location] to create buckets at (default `US` multi-region) |
+| `gcs.csi.ofek.dev/bucket` | The name for the new bucket |
 
 ### Persistent buckets
 
