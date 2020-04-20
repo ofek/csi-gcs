@@ -34,8 +34,8 @@ jobs:
 
     - name: Publish docs
       run: |
-        git config user.name "$GITHUB_ACTOR"
-        git config user.email "publish@bot.me"
         invoke docs.publish
       env:
+        GH_USER: "${{ secrets.GH_USER }}"
+        GH_EMAIL: "${{ secrets.GH_EMAIL }}"
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

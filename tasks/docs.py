@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 
 from invoke import Exit, task
 
-from .utils import create_file, get_latest_commit_hash
+from .utils import create_file, get_git_email, get_git_user, get_latest_commit_hash
 
 
 def insert_verbosity_flag(command, verbosity):
@@ -69,6 +69,8 @@ def publish(ctx):
         raise Exit('Site directory does not exist, build docs by running `inv docs.build`')
 
     print('Reading current Git configuration...')
+    git_user = get_git_user(ctx)
+    git_email = get_git_email(ctx)
     latest_commit_hash = get_latest_commit_hash(ctx)
     remote = f'https://{github_token}@github.com/ofek/csi-gcs.git'
 
@@ -86,6 +88,8 @@ def publish(ctx):
             os.chdir(temp_repo_dir)
             print('Configuring the temporary Git repository...')
             ctx.run('git init', hide=True)
+            ctx.run(f'git config user.name "{git_user}"', hide=True)
+            ctx.run(f'git config user.email "{git_email}"', hide=True)
             ctx.run(f'git remote add upstream {remote}', hide=True)
 
             print('Discovering remote...')
