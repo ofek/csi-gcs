@@ -1,0 +1,112 @@
+site_name: csi-gcs
+site_description: Kubernetes CSI driver for Google Cloud Storage
+site_author: Ofek Lev
+site_url: https://ofek.dev/csi-gcs/
+repo_name: ofek/csi-gcs
+repo_url: https://github.com/ofek/csi-gcs
+edit_uri: blob/master/docs
+copyright: 'Copyright &copy; Ofek Lev 2020-present'
+
+docs_dir: docs
+site_dir: site
+theme:
+  name: material
+  language: en
+  features:
+    - tabs
+  palette:
+    primary: blue
+    accent: blue
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    logo: material/book-open-page-variant
+    repo: fontawesome/brands/github-alt
+  favicon: assets/images/favicon.ico
+
+nav:
+  - Home: index.md
+  - Getting started: getting_started.md
+  - Static provisioning: static_provisioning.md
+  - Dynamic provisioning: dynamic_provisioning.md
+  - Contributing:
+    - Setup: contributing/setup.md
+    - Authors: contributing/authors.md
+
+plugins:
+  # Built-in
+  - search:
+  # Extra
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      type: date
+
+markdown_extensions:
+  # Built-in
+  - markdown.extensions.abbr:
+  - markdown.extensions.admonition:
+  - markdown.extensions.footnotes:
+  - markdown.extensions.tables:
+  - markdown.extensions.toc:
+      permalink: true
+      toc_depth: "2-6"
+  # Extra
+  - pymdownx.arithmatex:
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret:
+  - pymdownx.critic:
+  - pymdownx.details:
+  - pymdownx.emoji:
+      # https://github.com/twitter/twemoji
+      # https://raw.githubusercontent.com/facelessuser/pymdown-extensions/master/pymdownx/twemoji_db.py
+      emoji_index: !!python/name:pymdownx.emoji.twemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.highlight:
+      guess_lang: false
+      linenums_style: pymdownx-inline
+      use_pygments: true
+  - pymdownx.inlinehilite:
+  - pymdownx.keys:
+  - pymdownx.magiclink:
+      repo_url_shortener: true
+      repo_url_shorthand: true
+      social_url_shorthand: true
+      provider: github
+      user: ofek
+      repo: csi-gcs
+  - pymdownx.mark:
+  - pymdownx.smartsymbols:
+  - pymdownx.snippets:
+      base_path: docs/_snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: math
+          class: arithmatex
+          format: !!python/name:pymdownx.arithmatex.fence_mathjax_format
+  - pymdownx.tabbed:
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde:
+
+extra:
+  social:
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/ofekmeister/csi-gcs
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ofek
+    - icon: fontawesome/solid/blog
+      link: https://ofek.dev/words/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/Ofekmeister
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/ofeklev/
+extra_css:
+  - assets/css/custom.css
+extra_javascript:
+  - assets/js/custom.js
