@@ -35,7 +35,7 @@ jobs:
     - name: Publish docs
       run: |
         invoke docs.publish
-      with:
+      env:
         GH_USER: "${{ secrets.GH_USER }}"
         GH_EMAIL: "${{ secrets.GH_EMAIL }}"
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
