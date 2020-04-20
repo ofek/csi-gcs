@@ -4,12 +4,14 @@
 
 ## Getting started
 
+* Dependencies
+    - You'll need to have [Python 3.6+](https://www.python.org/downloads/) in your PATH
+    - `python -m pip install --upgrade -r requirements.txt`
 * Minikube
     - Setup [`minikube`](https://kubernetes.io/docs/tasks/tools/install-minikube/#installing-minikube)
     - Start `minikube` (`minikube start`)
-* Invoke
+* Build
     - Enable `minikube` Docker Env (`eval $(minikube docker-env)`)
-    - Install [`invoke`](http://www.pyinvoke.org/installing.html)
     - Build Docker Image `invoke image`
 * `gcloud`
     - Install [`gcloud`](https://cloud.google.com/sdk/install)
@@ -30,3 +32,7 @@
 
 * Build Docker Image `invoke image`
 * Delete Pod
+
+## Build docs
+
+* `invoke docs`

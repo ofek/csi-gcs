@@ -116,7 +116,7 @@ you can set `reclaimPolicy` to `Retain`.
 In order to access anything stored in GCS, you will need [service accounts][gcp-service-account] with
 appropriate IAM roles.
 
-The [easiest way][gcp-create-service-account] to create service account keys, if you don't yet
+The [easiest way][gcp-create-sa-key] to create service account keys, if you don't yet
 have any, is to run:
 
 ```console

@@ -103,7 +103,7 @@ In order to access anything stored in GCS, you will need [service accounts][gcp-
 appropriate IAM roles. If writes are needed, you will usually select `roles/storage.objectAdmin` scoped
 to the desired buckets.
 
-The [easiest way][gcp-create-service-account] to create service account keys, if you don't yet
+The [easiest way][gcp-create-sa-key] to create service account keys, if you don't yet
 have any, is to run:
 
 ```console
