@@ -1,0 +1,12 @@
+[k8s-daemonset]: https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/
+[k8s-statefulset]: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+[k8s-secret]: https://kubernetes.io/docs/concepts/configuration/secret/
+[k8s-volume-csi]: https://kubernetes.io/docs/concepts/storage/volumes/#csi
+[k8s-storage-class]: https://kubernetes.io/docs/concepts/storage/storage-classes/
+[csi-deploy-controller]: https://kubernetes-csi.github.io/docs/deploying.html#controller-plugin
+[csi-deploy-node]: https://kubernetes-csi.github.io/docs/deploying.html#node-plugin
+[google-cloud-storage]: https://cloud.google.com/storage
+[gcp-create-sa-key]: https://cloud.google.com/iam/docs/creating-managing-service-account-keys#iam-service-account-keys-create-gcloud
+[gcp-service-account]: https://cloud.google.com/iam/docs/understanding-service-accounts
+[gcs-iam-permission]: https://cloud.google.com/storage/docs/access-control/iam-permissions
+[gcs-location]: https://cloud.google.com/storage/docs/locations#available_locations

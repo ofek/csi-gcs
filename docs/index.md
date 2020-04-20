@@ -7,9 +7,7 @@
 
 -----
 
-An easy-to-use, cross-platform, and highly optimized Kubernetes CSI driver for mounting Google Cloud Storage buckets.
-
-Feel free to read the [documentation](https://ofek.dev/csi-gcs/)!
+An easy-to-use, cross-platform, and highly optimized Kubernetes CSI driver for mounting [Google Cloud Storage][google-cloud-storage] buckets.
 
 ## License
 
@@ -20,6 +18,14 @@ Feel free to read the [documentation](https://ofek.dev/csi-gcs/)!
 
 at your option.
 
-## Disclaimer
+## Navigation
 
-This is not an official Google product.
+Desktop readers can use keyboard shortcuts to navigate.
+
+| Keys | Action |
+| --- | --- |
+| <ul><li><kbd>,</kbd> (comma)</li><li><kbd>p</kbd></li></ul> | Navigate to the "previous" page |
+| <ul><li><kbd>.</kbd> (period)</li><li><kbd>n</kbd></li></ul> | Navigate to the "next" page |
+| <ul><li><kbd>/</kbd></li><li><kbd>s</kbd></li></ul> | Display the search modal |
+
+--8<-- "refs.txt"
