@@ -5,6 +5,7 @@ on:
     paths:
     - docs/**
     - .github/workflows/publish.yml
+    - tasks/docs.py
     - mkdocs.yml
     - tox.ini
     branches:

@@ -72,7 +72,11 @@ def publish(ctx):
     git_user = get_git_user(ctx)
     git_email = get_git_email(ctx)
     latest_commit_hash = get_latest_commit_hash(ctx)
-    remote = f'https://{github_token}@github.com/ofek/csi-gcs.git'
+
+    if 'GITHUB_ACTIONS' in os.environ:
+        remote = f'https://{os.getenv("GITHUB_ACTOR")}:{github_token}@github.com/ofek/csi-gcs.git'
+    else:
+        remote = f'https://{github_token}@github.com/ofek/csi-gcs.git'
 
     print('Copying site to a temporary directory...')
     with TemporaryDirectory() as d:
