@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net"
-	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc"
@@ -13,14 +12,6 @@ import (
 	"github.com/ofek/csi-gcs/pkg/util"
 )
 
-type GCSVolume struct {
-	bucket  string
-	count   int
-	flags   []string
-	keyFile string
-	path    string
-}
-
 type GCSDriver struct {
 	name       string
 	nodeName   string
@@ -28,8 +19,6 @@ type GCSDriver struct {
 	mountPoint string
 	version    string
 	server     *grpc.Server
-	m          *sync.Mutex
-	volumes    map[string]*GCSVolume
 }
 
 func NewGCSDriver(name, node, endpoint string) (*GCSDriver, error) {
@@ -39,8 +28,6 @@ func NewGCSDriver(name, node, endpoint string) (*GCSDriver, error) {
 		endpoint:   endpoint,
 		mountPoint: BucketMountPath,
 		version:    driverVersion,
-		m:          &sync.Mutex{},
-		volumes:    make(map[string]*GCSVolume),
 	}, nil
 }
 

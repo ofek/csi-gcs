@@ -40,6 +40,20 @@ RUN if [ "${UPX}" != "" ]; then \
      && upx /tmp/bin/gcsfuse; \
     fi
 
+FROM golang:1.13.6-alpine3.11 AS test
+
+RUN apk add build-base fuse fuse-dev git upx --update --no-cache
+
+ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
+
+RUN mkdir -p ${DRIVER}
+WORKDIR ${DRIVER}
+
+COPY --from=build /tmp/bin/* /usr/local/bin/
+COPY --from=build ${GOPATH} ${GOPATH}
+COPY csi_gcs_suite_test.go ${DRIVER}
+COPY test ${DRIVER}/test
+
 FROM alpine:3.11
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
