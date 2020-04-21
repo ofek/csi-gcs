@@ -4,8 +4,10 @@
 
 ## Maintainers
 
-- Ofek Lev ([@ofek](https://github.com/ofek))
+- Ofek Lev (@ofek)
+- Jonatan Männchen (@maennchen)
 
 ## Contributors
 
-- Jonatan Männchen ([@maennchen](https://github.com/maennchen))
+- Ofek Lev (@ofek)
+- Jonatan Männchen (@maennchen)
