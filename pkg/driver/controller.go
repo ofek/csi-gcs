@@ -6,6 +6,7 @@ import (
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
+	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
 	"k8s.io/klog"
 
@@ -27,13 +28,30 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 		return nil, status.Error(codes.InvalidArgument, "missing volume capabilities")
 	}
 
-	options := req.Parameters
-	if options == nil {
-		options = map[string]string{}
+	for _, capability := range req.GetVolumeCapabilities() {
+		if capability.GetMount() != nil && capability.GetBlock() == nil {
+			continue
+		}
+		return nil, status.Error(codes.InvalidArgument, "Only volumeMode Filesystem is supported")
 	}
 
-	pvcName, pvcNameSelected := options["csi.storage.k8s.io/pvc/name"]
-	pvcNamespace, pvcNamespaceSelected := options["csi.storage.k8s.io/pvc/namespace"]
+	// Default Options
+	var options = map[string]string{
+		"bucket":   util.BucketName(req.Name),
+		"location": "US",
+	}
+
+	// Merge Secret Options
+	options = flags.MergeSecret(options, req.Secrets)
+
+	// Merge MountFlag Options
+	for _, capability := range req.GetVolumeCapabilities() {
+		options = flags.MergeMountOptions(options, capability.GetMount().GetMountFlags())
+	}
+
+	// Merge PVC Annotation Options
+	pvcName, pvcNameSelected := req.Parameters["csi.storage.k8s.io/pvc/name"]
+	pvcNamespace, pvcNamespaceSelected := req.Parameters["csi.storage.k8s.io/pvc/namespace"]
 
 	var pvcAnnotations = map[string]string{}
 
@@ -45,42 +63,19 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 
 		pvcAnnotations = loadedPvcAnnotations
 	}
+	options = flags.MergeAnnotations(options, pvcAnnotations)
 
-	var bucketName string
-	if annotationBucketName, annotationBucketNameSelected := pvcAnnotations["gcs.csi.ofek.dev/bucket"]; annotationBucketNameSelected {
-		bucketName = annotationBucketName
-	} else {
-		bucketName = util.BucketName(req.Name)
+	// Merge Context
+	if req.Parameters != nil {
+		options = flags.MergeAnnotations(options, req.Parameters)
 	}
 
+	// Retrieve Key Secret
 	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
 	if err != nil {
 		return nil, err
 	}
 	defer util.CleanupKey(keyFile, KeyStoragePath)
-
-	var projectId string
-	if annotationProjectId, annotationProjectIdSelected := pvcAnnotations["gcs.csi.ofek.dev/project-id"]; annotationProjectIdSelected {
-		projectId = annotationProjectId
-	} else if contextProjectId, contextProjectIdSelected := options["gcs.csi.ofek.dev/project-id"]; contextProjectIdSelected {
-		projectId = contextProjectId
-	} else if secretProjectId, secretProjectIdSelected := req.Secrets["projectId"]; secretProjectIdSelected {
-		projectId = secretProjectId
-	} else {
-		return nil, status.Errorf(codes.InvalidArgument, "Project Id not provided, bucket can't be created: %s", bucketName)
-	}
-
-	var bucketLocation string
-	if annotationLocationName, annotationLocationNameSelected := pvcAnnotations["gcs.csi.ofek.dev/location"]; annotationLocationNameSelected {
-		bucketLocation = annotationLocationName
-	} else if contextBucketLocation, contextBucketLocationSelected := options["gcs.csi.ofek.dev/location"]; contextBucketLocationSelected {
-		bucketLocation = contextBucketLocation
-	} else if secretBucketLocation, secretBucketLocationSelected := req.Secrets["location"]; secretBucketLocationSelected {
-		bucketLocation = secretBucketLocation
-	} else {
-		bucketLocation = "US"
-		klog.V(2).Infof("Bucket location US default for bucket %s", bucketName)
-	}
 
 	// Creates a client.
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
@@ -89,15 +84,21 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	}
 
 	// Creates a Bucket instance.
-	bucket := client.Bucket(bucketName)
+	bucket := client.Bucket(options[flags.FLAG_BUCKET])
 
+	// Check if Bucket Exists
 	_, err = bucket.Attrs(ctx)
 	if err == nil {
-		klog.V(2).Infof("Bucket '%s' exists", bucketName)
+		klog.V(2).Infof("Bucket '%s' exists", options[flags.FLAG_BUCKET])
 	} else {
-		klog.V(2).Infof("Bucket '%s' does not exist, creating", bucketName)
+		klog.V(2).Infof("Bucket '%s' does not exist, creating", options[flags.FLAG_BUCKET])
 
-		if err := bucket.Create(ctx, projectId, &storage.BucketAttrs{Location: bucketLocation}); err != nil {
+		projectId, projectIdExists := options[flags.FLAG_PROJECT_ID]
+		if !projectIdExists {
+			return nil, status.Errorf(codes.InvalidArgument, "Project Id not provided, bucket can't be created: %s", options[flags.FLAG_BUCKET])
+		}
+
+		if err := bucket.Create(ctx, projectId, &storage.BucketAttrs{Location: options[flags.FLAG_LOCATION]}); err != nil {
 			return nil, status.Errorf(codes.Internal, "Failed to create bucket: %v", err)
 		}
 	}
@@ -121,14 +122,12 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 			return nil, status.Errorf(codes.Internal, "Failed to set bucket capacity: %v", err)
 		}
 	} else if existingCapacity < newCapacity {
-		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("Volume with the same name: %s but with smaller size already exist", bucketName))
+		return nil, status.Error(codes.AlreadyExists, fmt.Sprintf("Volume with the same name: %s but with smaller size already exist", options[flags.FLAG_BUCKET]))
 	}
-
-	options["bucket"] = bucketName
 
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
-			VolumeId:      bucketName,
+			VolumeId:      options[flags.FLAG_BUCKET],
 			VolumeContext: options,
 			CapacityBytes: newCapacity,
 		},
@@ -141,8 +140,6 @@ func (d *GCSDriver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeReque
 	if req.VolumeId == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing volume id")
 	}
-
-	bucketName := req.VolumeId
 
 	keyFile, err := util.GetKey(req.Secrets, map[string]string{}, KeyStoragePath)
 	if err != nil {
@@ -157,15 +154,15 @@ func (d *GCSDriver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeReque
 	}
 
 	// Creates a Bucket instance.
-	bucket := client.Bucket(bucketName)
+	bucket := client.Bucket(req.VolumeId)
 
 	_, err = bucket.Attrs(ctx)
 	if err == nil {
 		if err := bucket.Delete(ctx); err != nil {
-			return nil, status.Errorf(codes.Internal, "Error deleting bucket %s, %v", bucketName, err)
+			return nil, status.Errorf(codes.Internal, "Error deleting bucket %s, %v", req.VolumeId, err)
 		}
 	} else {
-		klog.V(2).Infof("Bucket '%s' does not exist, not deleting", bucketName)
+		klog.V(2).Infof("Bucket '%s' does not exist, not deleting", req.VolumeId)
 	}
 
 	return &csi.DeleteVolumeResponse{}, nil
@@ -218,6 +215,13 @@ func (d *GCSDriver) ValidateVolumeCapabilities(ctx context.Context, req *csi.Val
 
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "volume does not exist")
+	}
+
+	for _, capability := range req.GetVolumeCapabilities() {
+		if capability.GetMount() != nil && capability.GetBlock() == nil {
+			continue
+		}
+		return &csi.ValidateVolumeCapabilitiesResponse{Message: "Only volumeMode Filesystem is supported"}, nil
 	}
 
 	return &csi.ValidateVolumeCapabilitiesResponse{

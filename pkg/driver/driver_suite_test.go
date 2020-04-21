@@ -1,4 +1,4 @@
-package csi_gcs_test
+package driver_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCsiGcs(t *testing.T) {
+func TestDriver(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CsiGcs Suite")
+	RunSpecs(t, "Driver Suite")
 }
