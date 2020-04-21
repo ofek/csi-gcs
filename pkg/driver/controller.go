@@ -32,7 +32,26 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 		options = map[string]string{}
 	}
 
-	var bucketName = util.BucketName(req.Name)
+	pvcName, pvcNameSelected := options["csi.storage.k8s.io/pvc/name"]
+	pvcNamespace, pvcNamespaceSelected := options["csi.storage.k8s.io/pvc/namespace"]
+
+	var pvcAnnotations = map[string]string{}
+
+	if pvcNameSelected && pvcNamespaceSelected {
+		loadedPvcAnnotations, err := util.GetPvcAnnotations(pvcName, pvcNamespace)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Failed to load PersistentVolumeClaim: %v", err)
+		}
+
+		pvcAnnotations = loadedPvcAnnotations
+	}
+
+	var bucketName string
+	if annotationBucketName, annotationBucketNameSelected := pvcAnnotations["gcs.csi.ofek.dev/bucket"]; annotationBucketNameSelected {
+		bucketName = annotationBucketName
+	} else {
+		bucketName = util.BucketName(req.Name)
+	}
 
 	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
 	if err != nil {
@@ -41,7 +60,9 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	var projectId string
-	if contextProjectId, contextProjectIdSelected := options["gcs.csi.ofek.dev/project-id"]; contextProjectIdSelected {
+	if annotationProjectId, annotationProjectIdSelected := pvcAnnotations["gcs.csi.ofek.dev/project-id"]; annotationProjectIdSelected {
+		projectId = annotationProjectId
+	} else if contextProjectId, contextProjectIdSelected := options["gcs.csi.ofek.dev/project-id"]; contextProjectIdSelected {
 		projectId = contextProjectId
 	} else if secretProjectId, secretProjectIdSelected := req.Secrets["projectId"]; secretProjectIdSelected {
 		projectId = secretProjectId
@@ -50,7 +71,9 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	}
 
 	var bucketLocation string
-	if contextBucketLocation, contextBucketLocationSelected := options["gcs.csi.ofek.dev/location"]; contextBucketLocationSelected {
+	if annotationLocationName, annotationLocationNameSelected := pvcAnnotations["gcs.csi.ofek.dev/location"]; annotationLocationNameSelected {
+		bucketLocation = annotationLocationName
+	} else if contextBucketLocation, contextBucketLocationSelected := options["gcs.csi.ofek.dev/location"]; contextBucketLocationSelected {
 		bucketLocation = contextBucketLocation
 	} else if secretBucketLocation, secretBucketLocationSelected := req.Secrets["location"]; secretBucketLocationSelected {
 		bucketLocation = secretBucketLocation

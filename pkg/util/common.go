@@ -17,6 +17,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 func ParseEndpoint(endpoint string) (string, string, error) {
@@ -159,4 +163,23 @@ func BucketExists(ctx context.Context, bucket *storage.BucketHandle) (exists boo
 	}
 
 	return true, nil
+}
+
+func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[string]string, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return pvc.ObjectMeta.Annotations, nil
 }
