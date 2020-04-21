@@ -108,6 +108,14 @@ parameters:
 
 ### Persistent Volume Claim Parameters
 
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    ...
+```
+
 | Annotation | Description |
 | --- | --- |
 | `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
