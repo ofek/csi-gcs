@@ -156,7 +156,7 @@ func BucketExists(ctx context.Context, bucket *storage.BucketHandle) (exists boo
 
 	if err == iterator.Done {
 		return true, nil
-	} else if err.Error() == "storage: bucket doesn't exist" {
+	} else if err != nil && err.Error() == "storage: bucket doesn't exist" {
 		return false, nil
 	} else if err != nil {
 		return false, err
