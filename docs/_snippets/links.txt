@@ -10,3 +10,5 @@
 [gcp-service-account]: https://cloud.google.com/iam/docs/understanding-service-accounts
 [gcs-iam-permission]: https://cloud.google.com/storage/docs/access-control/iam-permissions
 [gcs-location]: https://cloud.google.com/storage/docs/locations#available_locations
+[gcsfuse-github]: https://github.com/GoogleCloudPlatform/gcsfuse
+[gcsfuse-implicit-dirs]: https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/semantics.md#implicit-directories

@@ -94,8 +94,52 @@ The bucket name is resolved in the following order:
 
 ### Extra flags
 
-You can pass arbitrary flags to [gcsfuse](https://github.com/GoogleCloudPlatform/gcsfuse) by setting
-`flags` in `volumeAttributes` e.g. `--limit-ops-per-sec=10 --only-dir=some/nested/folder`.
+You can pass arbitrary flags to [gcsfuse][gcsfuse-github] in the following ways (ordered by precedence):
+
+1. ??? info "**PersistentVolume.spec.csi.volumeAttributes**"
+       | Option | Type | Description |
+       | --- | --- | --- |
+       | `dir-mode` | Integer | Permission bits for directories, in octal. (default: 755) |
+       | `file-mode` | Integer | Permission bits for files, in octal. (default: 644) |
+       | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+       | `uid` | Integer | UID owner of all inodes. (default: -1) |
+       | `implicit-dirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+       | `billing-project` | Text | Project to use for billing when accessing requester pays buckets. |
+       | `limit-bytes-per-sec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+       | `limit-ops-per-sec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+       | `stat-cache-ttl` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+       | `type-cache-ttl` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+       | `fuse-mount-options` | Text | Additional comma-separated system-specific mount options. Be careful! |
+
+1. ??? info "**PersistentVolume.spec.mountOptions**"
+       | Option | Type | Description |
+       | --- | --- | --- |
+       | `dirMode` | Integer | Permission bits for directories, in octal. (default: 755) |
+       | `fileMode` | Integer | Permission bits for files, in octal. (default: 644) |
+       | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+       | `uid` | Integer | UID owner of all inodes. (default: -1) |
+       | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+       | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
+       | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+       | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+       | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+       | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+       | `fuseMountOptions` | Text | Additional comma-separated system-specific mount options. Be careful! |
+
+1. ??? info "**PersistentVolume.spec.csi.nodePublishSecretRef**"
+       | Option | Type | Description |
+       | --- | --- | --- |
+       | `dirMode` | Integer | Permission bits for directories, in octal. (default: 755) |
+       | `fileMode` | Integer | Permission bits for files, in octal. (default: 644) |
+       | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+       | `uid` | Integer | UID owner of all inodes. (default: -1) |
+       | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+       | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
+       | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+       | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+       | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+       | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+       | `fuseMountOptions` | Text | Additional comma-separated system-specific mount options. Be careful! |
 
 ## Permission
 

@@ -44,7 +44,7 @@ const (
 	MOUNT_OPTION_BUCKET              = "bucket"
 	MOUNT_OPTION_PROJECT_ID          = "project-id"
 	MOUNT_OPTION_LOCATION            = "location"
-	MOUNT_OPTION_FUSE_MOUNT_OPTION   = "fuse-mount-option"
+	MOUNT_OPTION_FUSE_MOUNT_OPTION   = "fuse-mount-options"
 	MOUNT_OPTION_DIR_MODE            = "dir-mode"
 	MOUNT_OPTION_FILE_MODE           = "file-mode"
 	MOUNT_OPTION_UID                 = "uid"
