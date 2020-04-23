@@ -4,7 +4,7 @@ bases:
 - ../../base
 images:
 - name: docker.io/ofekmeister/csi-gcs
-  newTag: v0.2.0
+  newTag: v0.3.0
 - name: quay.io/k8scsi/csi-node-driver-registrar
   newName: gcr.io/gke-release/csi-node-driver-registrar
   newTag: v1.2.0-gke.0
