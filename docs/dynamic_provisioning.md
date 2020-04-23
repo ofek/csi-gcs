@@ -131,7 +131,7 @@ you can set `reclaimPolicy` to `Retain`.
 
 You can pass arbitrary flags to [gcsfuse][gcsfuse-github]. They will be passed to [`PersistentVolumeClaim.spec.csi.volumeAttributes`](static_provisioning.md#extra-flags).
 
-Thw following flags are supported (ordered by precedence):
+The following flags are supported (ordered by precedence):
 
 1. ??? info "**PersistentVolumeClaim.meta.annotations**"
        | Option | Type | Description |
