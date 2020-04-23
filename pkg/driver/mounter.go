@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -41,7 +42,7 @@ func NewGcsFuseMounter(bucket string, keyFile string, flags []string) (*GcsFuseM
 }
 
 func (gcsfuse *GcsFuseMounter) Mount(target string) error {
-	args := []string{fmt.Sprintf("--key-file=%s", gcsfuse.keyFile), "-o=allow_other"}
+	args := []string{fmt.Sprintf("--key-file=%s", gcsfuse.keyFile), "-o=allow_other", "--foreground"}
 	args = append(args, gcsfuse.flags...)
 	args = append(args, gcsfuse.bucket, target)
 
@@ -49,16 +50,41 @@ func (gcsfuse *GcsFuseMounter) Mount(target string) error {
 		return status.Errorf(codes.Internal, "Unable to create target path %s: %v", target, err)
 	}
 
-	return FuseMount(target, gcsFuseCommand, args)
+	return FuseMount(target, gcsFuseCommand, args, gcsfuse.bucket)
 }
 
-func FuseMount(path string, command string, args []string) error {
+func FuseMount(path string, command string, args []string, bucket string) error {
 	cmd := exec.Command(command, args...)
 	klog.V(3).Infof("Mounting fuse with command: %s and args: %s", command, args)
 
-	out, err := cmd.CombinedOutput()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("Error fuseMount command: %s\nargs: %s\noutput: %s", command, args, out)
+		return err
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	scannerStdout := bufio.NewScanner(stdout)
+	go func() {
+		for scannerStdout.Scan() {
+			text := scannerStdout.Text()
+			klog.V(3).Infof("[%s] %s", bucket, text)
+		}
+	}()
+
+	scannerStderr := bufio.NewScanner(stderr)
+	go func() {
+		for scannerStderr.Scan() {
+			text := scannerStderr.Text()
+			klog.Errorf("[%s] %s", bucket, text)
+		}
+	}()
+
+	if err := cmd.Start(); err != nil {
+		return err
 	}
 
 	return WaitForMount(path, 10*time.Second)
