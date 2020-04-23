@@ -2,7 +2,7 @@ package driver
 
 import (
 	"context"
-	"strings"
+	"strconv"
 
 	"cloud.google.com/go/storage"
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -12,19 +12,18 @@ import (
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 
+	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
 )
 
 func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	klog.V(4).Infof("Method NodePublishVolume called with: %s", protosanitizer.StripSecrets(req))
 
-	volumeId := req.GetVolumeId()
-	if volumeId == "" {
+	if req.GetVolumeId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
 	}
 
-	volumePath := req.TargetPath
-	if volumePath == "" {
+	if req.TargetPath == "" {
 		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
 	}
 
@@ -32,18 +31,30 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Volume Capability must be provided")
 	}
 
-	options := req.VolumeContext
-
-	var bucketName string
-	if contextBucket, contextBucketSelected := options["bucket"]; contextBucketSelected {
-		bucketName = contextBucket
-	} else if secretBucket, secretBucketSelected := req.Secrets["bucket"]; secretBucketSelected {
-		bucketName = secretBucket
-	} else {
-		klog.V(2).Infof("A bucket was not selected, defaulting to the volume name %s", volumeId)
-		bucketName = volumeId
+	if req.VolumeCapability.GetMount() == nil || req.VolumeCapability.GetBlock() != nil {
+		return nil, status.Error(codes.InvalidArgument, "Only volumeMode Filesystem is supported")
 	}
 
+	// Default Options
+	var options = map[string]string{
+		"bucket":   req.GetVolumeId(),
+		"gid":      strconv.FormatInt(DefaultGid, 10),
+		"dirMode":  "0" + strconv.FormatInt(DefaultDirMode, 8),
+		"fileMode": "0" + strconv.FormatInt(DefaultFileMode, 8),
+	}
+
+	// Merge Secret Options
+	options = flags.MergeSecret(options, req.Secrets)
+
+	// Merge MountFlag Options
+	options = flags.MergeMountOptions(options, req.GetVolumeCapability().GetMount().GetMountFlags())
+
+	// Merge Volume Context
+	if req.VolumeContext != nil {
+		options = flags.MergeFlags(options, req.VolumeContext)
+	}
+
+	// Retrieve Secret Key
 	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
 	if err != nil {
 		return nil, err
@@ -57,22 +68,14 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	}
 
 	// Creates a Bucket instance.
-	bucket := client.Bucket(bucketName)
+	bucket := client.Bucket(options[flags.FLAG_BUCKET])
 
 	bucketExists, err := util.BucketExists(ctx, bucket)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to check if bucket exists: %v", err)
 	}
 	if !bucketExists {
-		return nil, status.Errorf(codes.NotFound, "Bucket %s does not exist", bucketName)
-	}
-
-	var extraFlags = []string{}
-	if flags, exists := options["flags"]; exists {
-		parsedFlags := strings.Fields(flags)
-		if parsedFlags != nil {
-			extraFlags = append(extraFlags, parsedFlags...)
-		}
+		return nil, status.Errorf(codes.NotFound, "Bucket %s does not exist", options[flags.FLAG_BUCKET])
 	}
 
 	notMnt, err := CheckMount(req.TargetPath)
@@ -83,7 +86,7 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
-	mounter, err := NewGcsFuseMounter(bucketName, keyFile, extraFlags)
+	mounter, err := NewGcsFuseMounter(options[flags.FLAG_BUCKET], keyFile, flags.ExtraFlags(options))
 	if err != nil {
 		return nil, err
 	}
@@ -97,26 +100,23 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (response *csi.NodeUnpublishVolumeResponse, err error) {
 	klog.V(4).Infof("Method NodeUnpublishVolume called with: %s", protosanitizer.StripSecrets(req))
 
-	volumeId := req.GetVolumeId()
-	targetPath := req.GetTargetPath()
-
 	// Check arguments
-	if len(volumeId) == 0 {
+	if len(req.GetVolumeId()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
 	}
-	if len(targetPath) == 0 {
+	if len(req.GetTargetPath()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
 	}
 
-	notMount, err := CheckMount(targetPath)
+	notMount, err := CheckMount(req.GetTargetPath())
 	if err != nil || notMount {
 		return &csi.NodeUnpublishVolumeResponse{}, nil
 	}
 
-	if err := FuseUnmount(targetPath); err != nil {
+	if err := FuseUnmount(req.GetTargetPath()); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	klog.V(4).Infof("bucket %s has been unmounted.", volumeId)
+	klog.V(4).Infof("bucket %s has been unmounted.", req.GetVolumeId())
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }

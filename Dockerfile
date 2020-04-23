@@ -51,7 +51,6 @@ WORKDIR ${DRIVER}
 
 COPY --from=build /tmp/bin/* /usr/local/bin/
 COPY --from=build ${GOPATH} ${GOPATH}
-COPY csi_gcs_suite_test.go ${DRIVER}
 COPY test ${DRIVER}/test
 
 FROM alpine:3.11

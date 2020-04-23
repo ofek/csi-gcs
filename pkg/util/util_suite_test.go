@@ -1,4 +1,4 @@
-package csi_gcs_test
+package util_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCsiGcs(t *testing.T) {
+func TestUtil(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CsiGcs Suite")
+	RunSpecs(t, "Util Suite")
 }

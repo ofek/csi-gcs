@@ -8,14 +8,23 @@ from .image import image_name
     help={
         'version': f'The desired version (default: {VERSION})',
         'gcsfuse': f'The version or commit hash of gcsfuse (default: {GCSFUSE_VERSION})',
-    }
+    },
+    default=True,
 )
-def sanity(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
+def all(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
+    unit(ctx, version, gcsfuse)
+    sanity(ctx, version, gcsfuse)
+
+def test_image_name(version=VERSION):
+    image = image_name(version)
+    image += '-builder'
+    return image
+
+def build(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
     global_ldflags = ''
     version += '-rc'
 
-    image = image_name(version)
-    image += '-builder'
+    image = test_image_name(version)
 
     ctx.run(
         f'docker build . --tag {image} '
@@ -26,6 +35,19 @@ def sanity(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
         echo=True,
     )
 
+@task(
+    help={
+        'version': f'The desired version (default: {VERSION})',
+        'gcsfuse': f'The version or commit hash of gcsfuse (default: {GCSFUSE_VERSION})',
+    }
+)
+def sanity(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
+    build(ctx, version, gcsfuse)
+
+    version += '-rc'
+
+    image = test_image_name(version)
+
     ctx.run(
         f'docker run '
         f'--rm '
@@ -33,6 +55,52 @@ def sanity(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
         f'--device /dev/fuse '
         f'--privileged '
         f'-t {image} '
-        f'go test',
+        f'go test ./test',
+        echo=True
+    )
+
+@task(
+    help={
+        'version': f'The desired version (default: {VERSION})',
+        'gcsfuse': f'The version or commit hash of gcsfuse (default: {GCSFUSE_VERSION})',
+    }
+)
+def unit(ctx, version=VERSION, gcsfuse=GCSFUSE_VERSION):
+    build(ctx, version, gcsfuse)
+
+    version += '-rc'
+
+    image = test_image_name(version)
+
+    ctx.run(
+        f'docker run '
+        f'--rm '
+        f'--cap-add SYS_ADMIN '
+        f'--device /dev/fuse '
+        f'--privileged '
+        f'-t {image} '
+        f'go test ./pkg/driver',
+        echo=True
+    )
+
+    ctx.run(
+        f'docker run '
+        f'--rm '
+        f'--cap-add SYS_ADMIN '
+        f'--device /dev/fuse '
+        f'--privileged '
+        f'-t {image} '
+        f'go test ./pkg/flags',
+        echo=True
+    )
+
+    ctx.run(
+        f'docker run '
+        f'--rm '
+        f'--cap-add SYS_ADMIN '
+        f'--device /dev/fuse '
+        f'--privileged '
+        f'-t {image} '
+        f'go test ./pkg/util',
         echo=True
     )
