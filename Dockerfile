@@ -3,8 +3,6 @@ FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
 ARG gcsfuse_version
 ARG global_ldflags
 
-ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
-
 RUN apk add --update --no-cache fuse fuse-dev git upx
 
 WORKDIR ${GOPATH}
@@ -39,7 +37,7 @@ ENV UPX ${upx_flags}
 
 RUN apk add --update --no-cache upx
 
-ADD bin/driver /tmp/bin/driver
+COPY bin/driver /tmp/bin/driver
 
 # Compress the binaries
 RUN if [ "${UPX}" != "" ]; then \
