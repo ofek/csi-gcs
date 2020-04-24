@@ -58,3 +58,24 @@ def image_tags():
         return [last_tag.stdout.decode('utf-8').strip(), 'latest']
 
     return ['dev']
+
+
+class EnvVars(dict):
+    def __init__(self, env_vars=None, ignore=None):
+        super(EnvVars, self).__init__(os.environ)
+        self.old_env = dict(self)
+
+        if env_vars is not None:
+            self.update(env_vars)
+
+        if ignore is not None:
+            for env_var in ignore:
+                self.pop(env_var, None)
+
+    def __enter__(self):
+        os.environ.clear()
+        os.environ.update(self)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.environ.clear()
+        os.environ.update(self.old_env)
