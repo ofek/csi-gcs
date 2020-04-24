@@ -1,12 +1,9 @@
-FROM golang:1.13.6-alpine3.11 AS build
+FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
 
-ARG version
 ARG gcsfuse_version
 ARG global_ldflags
-ARG upx_flags
 
 ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
-ENV UPX ${upx_flags}
 
 RUN apk add --update --no-cache fuse fuse-dev git upx
 
@@ -21,37 +18,33 @@ RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
 RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
-# We don't need mount(8) compatibility as we call the binary directly, so only copy that
-RUN mv /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
+FROM golang:1.13.6-alpine3.11 AS compress-gcfsuse
 
-RUN mkdir -p ${DRIVER}
-WORKDIR ${DRIVER}
+ARG upx_flags
+ENV UPX ${upx_flags}
 
-COPY go.mod go.sum ${DRIVER}
-COPY cmd ${DRIVER}/cmd
-COPY pkg ${DRIVER}/pkg
+RUN apk add --update --no-cache upx
 
-# Build the driver
-RUN go build -o /tmp/bin/driver -ldflags "all=${global_ldflags}" -ldflags "-X github.com/ofek/csi-gcs/pkg/driver.driverVersion=${version} ${global_ldflags}" ./cmd
+COPY --from=build-gcsfuse /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
 
 # Compress the binaries
 RUN if [ "${UPX}" != "" ]; then \
-        upx /tmp/bin/driver \
-     && upx /tmp/bin/gcsfuse; \
+        upx /tmp/bin/gcsfuse; \
     fi
 
-FROM golang:1.13.6-alpine3.11 AS test
+FROM golang:1.13.6-alpine3.11 AS compress-csi-gcs
 
-RUN apk add build-base fuse fuse-dev git upx --update --no-cache
+ARG upx_flags
+ENV UPX ${upx_flags}
 
-ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
+RUN apk add --update --no-cache upx
 
-RUN mkdir -p ${DRIVER}
-WORKDIR ${DRIVER}
+ADD bin/driver /tmp/bin/driver
 
-COPY --from=build /tmp/bin/* /usr/local/bin/
-COPY --from=build ${GOPATH} ${GOPATH}
-COPY test ${DRIVER}/test
+# Compress the binaries
+RUN if [ "${UPX}" != "" ]; then \
+        upx /tmp/bin/driver; \
+    fi
 
 FROM alpine:3.11
 
@@ -75,4 +68,5 @@ WORKDIR /
 ENTRYPOINT ["/usr/local/bin/driver"]
 
 # Copy the binaries
-COPY --from=build /tmp/bin/* /usr/local/bin/
+COPY --from=compress-gcfsuse /tmp/bin/* /usr/local/bin/
+COPY --from=compress-csi-gcs /tmp/bin/* /usr/local/bin/

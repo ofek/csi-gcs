@@ -21,13 +21,13 @@ type GCSDriver struct {
 	server     *grpc.Server
 }
 
-func NewGCSDriver(name, node, endpoint string) (*GCSDriver, error) {
+func NewGCSDriver(name, node, endpoint string, version string) (*GCSDriver, error) {
 	return &GCSDriver{
 		name:       name,
 		nodeName:   node,
 		endpoint:   endpoint,
 		mountPoint: BucketMountPath,
-		version:    driverVersion,
+		version:    version,
 	}, nil
 }
 

@@ -24,3 +24,7 @@
 # Test Service Account
 /service-account.json
 /test/secret.yaml
+
+# Artifacts
+/bin/*
+!/bin/.gitkeep
