@@ -2,8 +2,6 @@ FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
 
 ARG gcsfuse_version
 
-ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
-
 RUN apk add --update --no-cache fuse fuse-dev git upx
 
 WORKDIR ${GOPATH}
@@ -28,7 +26,7 @@ RUN python3 -m pip install --upgrade pip setuptools
 RUN mkdir /driver
 WORKDIR /driver
 
-ADD requirements.txt /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
 
 RUN python3 -m pip install --upgrade -r /tmp/requirements.txt
 
