@@ -30,14 +30,72 @@
 
 ## Rebuild & Test Manually in Minikube
 
-* Build Docker Image `invoke image`
-* Delete Pod
+```console
+# Build Binary
+invoke build
 
-## Build docs
+# Build Container
+invoke image
+```
 
-* `invoke docs`
+Afterwards kill the currently running pod.
+
+## Documentation
+
+```console
+# Build
+invoke docs.build
+
+# Server
+invoke docs.serve
+```
 
 
 ## Sanity Tests
 
-* `invoke test.sanity`
+Needs root privileges and `gcsfuse` installed, execution via docker recommended.
+
+```console
+# Local
+invoke test.sanity
+
+# Docker
+invoke docker -c "invoke test.sanity"
+```
+
+Additionally the file `./test/secret.yaml` has to be created with the following content:
+
+```yml
+CreateVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+DeleteVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+ControllerPublishVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+ControllerUnpublishVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+NodeStageVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Object Admin Key JSON]
+NodePublishVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Object Admin Key JSON]
+ControllerValidateVolumeCapabilitiesSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+```
+
+## Develop inside Docker
+
+Run all `invoke` commands through `invoke docker -c "[CMD]"`.

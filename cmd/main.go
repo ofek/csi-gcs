@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	nodeName =         flag.String("node-name", "", "Node identifier")
-	driverName =       flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
-	endpoint =         flag.String("csi-endpoint", "unix:///csi/csi.sock", "CSI endpoint")
-	version =          flag.Bool("version", false, "Print the version and exit")
+	version        = "development"
+	nodeNameFlag   = flag.String("node-name", "", "Node identifier")
+	driverNameFlag = flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
+	endpointFlag   = flag.String("csi-endpoint", "unix:///csi/csi.sock", "CSI endpoint")
+	versionFlag    = flag.Bool("version", false, "Print the version and exit")
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	setEnvVarFlags()
 	flag.Parse()
 
-	if *version {
+	if *versionFlag {
 		versionJSON, err := driver.GetVersionJSON()
 		if err != nil {
 			klog.Error(err.Error())
@@ -34,7 +35,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	d, err := driver.NewGCSDriver(*driverName, *nodeName, *endpoint)
+	d, err := driver.NewGCSDriver(*driverNameFlag, *nodeNameFlag, *endpointFlag, version)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
