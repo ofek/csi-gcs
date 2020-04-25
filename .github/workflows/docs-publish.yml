@@ -1,6 +1,15 @@
 name: Documentation
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+    - docs/**
+    - .github/workflows/publish.yml
+    - tasks/docs.py
+    - mkdocs.yml
+    - tox.ini
+    branches:
+    - master
 
 jobs:
   build:
@@ -27,12 +36,10 @@ jobs:
       with:
         name: Documentation
         path: site
-  
-  publish_docs:
+
+  publish:
     name: Publish Docs
     runs-on: ubuntu-latest
-    # Only Publish Master
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs:
       - build
     steps:
