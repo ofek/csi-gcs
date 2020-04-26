@@ -53,6 +53,9 @@ markdown_extensions:
       permalink: true
       toc_depth: "2-6"
   # Extra
+  - mkpatcher:
+      script: |
+        lines.extend(('', '--8<-- "refs.txt"', ''))
   - pymdownx.arithmatex:
   - pymdownx.betterem:
       smart_enable: all
