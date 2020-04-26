@@ -250,5 +250,3 @@ If writes are needed, you will usually select `roles/storage.objectAdmin` scoped
 
 The [Controller Plugin][csi-deploy-controller] is the component that is in charge of creating buckets.
 The service account will need the `storage.buckets.create` [Cloud IAM permission][gcs-iam-permission].
-
---8<-- "refs.txt"

@@ -43,5 +43,3 @@ pod/csi-gcs-node-mbmnc                       2/2     Running   0          4s
 kubectl logs -l app=csi-gcs-controller -c csi-gcs-controller -n kube-system
 kubectl logs -l app=csi-gcs-node -c csi-gcs-node -n kube-system
 ```
-
---8<-- "refs.txt"

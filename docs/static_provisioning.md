@@ -184,5 +184,3 @@ gcloud iam service-accounts keys create <FILE_NAME>.json --iam-account <EMAIL>
 ```
 
 to create a key file.
-
---8<-- "refs.txt"
