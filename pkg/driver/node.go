@@ -55,7 +55,7 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	}
 
 	// Retrieve Secret Key
-	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
+	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,15 @@ func (driver *GCSDriver) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRe
 func (driver *GCSDriver) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
 	klog.V(4).Infof("Method NodeGetCapabilities called with: %s", protosanitizer.StripSecrets(req))
 
-	return &csi.NodeGetCapabilitiesResponse{Capabilities: []*csi.NodeServiceCapability{}}, nil
+	return &csi.NodeGetCapabilitiesResponse{Capabilities: []*csi.NodeServiceCapability{
+		{
+			Type: &csi.NodeServiceCapability_Rpc{
+				Rpc: &csi.NodeServiceCapability_RPC{
+					Type: csi.NodeServiceCapability_RPC_EXPAND_VOLUME,
+				},
+			},
+		},
+	}}, nil
 }
 
 func (driver *GCSDriver) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
@@ -154,5 +162,18 @@ func (driver *GCSDriver) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGe
 func (driver *GCSDriver) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
 	klog.V(4).Infof("Method NodeExpandVolume called with: %s", protosanitizer.StripSecrets(req))
 
-	return nil, status.Errorf(codes.Unimplemented, "NodeExpandVolume: not implemented by %s", driver.name)
+	// Check arguments
+	if len(req.GetVolumeId()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Volume ID missing in request")
+	}
+	if len(req.GetVolumePath()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "Volume path missing in request")
+	}
+
+	notMount, err := CheckMount(req.GetVolumePath())
+	if err != nil || notMount {
+		return nil, status.Error(codes.NotFound, "Volume is not mounted")
+	}
+
+	return &csi.NodeExpandVolumeResponse{}, nil
 }

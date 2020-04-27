@@ -71,7 +71,7 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	}
 
 	// Retrieve Key Secret
-	keyFile, err := util.GetKey(req.Secrets, options, KeyStoragePath)
+	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (d *GCSDriver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeReque
 		return nil, status.Error(codes.InvalidArgument, "missing volume id")
 	}
 
-	keyFile, err := util.GetKey(req.Secrets, map[string]string{}, KeyStoragePath)
+	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +180,13 @@ func (d *GCSDriver) ControllerGetCapabilities(ctx context.Context, req *csi.Cont
 					},
 				},
 			},
+			{
+				Type: &csi.ControllerServiceCapability_Rpc{
+					Rpc: &csi.ControllerServiceCapability_RPC{
+						Type: csi.ControllerServiceCapability_RPC_EXPAND_VOLUME,
+					},
+				},
+			},
 		},
 	}, nil
 }
@@ -196,7 +203,7 @@ func (d *GCSDriver) ValidateVolumeCapabilities(ctx context.Context, req *csi.Val
 
 	bucketName := req.VolumeId
 
-	keyFile, err := util.GetKey(req.Secrets, map[string]string{}, KeyStoragePath)
+	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
 	if err != nil {
 		return nil, err
 	}
@@ -279,5 +286,56 @@ func (d *GCSDriver) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsReq
 func (d *GCSDriver) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
 	klog.V(4).Infof("Method ControllerExpandVolume called with: %s", protosanitizer.StripSecrets(req))
 
-	return nil, status.Error(codes.Unimplemented, "")
+	if req.VolumeId == "" {
+		return nil, status.Error(codes.InvalidArgument, "missing volume id")
+	}
+
+	// Retrieve Key Secret
+	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+	if err != nil {
+		return nil, err
+	}
+	defer util.CleanupKey(keyFile, KeyStoragePath)
+
+	// Creates a client.
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
+	}
+
+	// Creates a Bucket instance.
+	bucket := client.Bucket(req.VolumeId)
+
+	// Check if Bucket Exists
+	_, err = bucket.Attrs(ctx)
+	if err == nil {
+		klog.V(2).Infof("Bucket '%s' exists", req.VolumeId)
+	} else {
+		return nil, status.Errorf(codes.NotFound, "Bucket '%s' does not exist", req.VolumeId)
+	}
+
+	// Get Capacity
+	bucketAttrs, err := bucket.Attrs(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to get bucket attrs: %v", err)
+	}
+
+	existingCapacity, err := util.BucketCapacity(bucketAttrs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to get bucket capacity: %v", err)
+	}
+
+	// Check / Set Capacity
+	newCapacity := int64(req.GetCapacityRange().GetRequiredBytes())
+	if newCapacity > existingCapacity {
+		_, err = util.SetBucketCapacity(ctx, bucket, newCapacity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Failed to set bucket capacity: %v", err)
+		}
+	}
+
+	return &csi.ControllerExpandVolumeResponse{
+		CapacityBytes:         newCapacity,
+		NodeExpansionRequired: false,
+	}, nil
 }

@@ -4,10 +4,12 @@ metadata:
   name: csi-gcs
 provisioner: gcs.csi.ofek.dev
 volumeBindingMode: Immediate
-allowVolumeExpansion: false
+allowVolumeExpansion: true
 reclaimPolicy: Delete
 parameters:
   csi.storage.k8s.io/node-publish-secret-name: csi-gcs-secret-mounter
   csi.storage.k8s.io/node-publish-secret-namespace: default
   csi.storage.k8s.io/provisioner-secret-name: csi-gcs-secret-creator
   csi.storage.k8s.io/provisioner-secret-namespace: default
+  csi.storage.k8s.io/controller-expand-secret-name: csi-gcs-secret-creator
+  csi.storage.k8s.io/controller-expand-secret-namespace: default
