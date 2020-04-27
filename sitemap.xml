@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
      <loc>https://ofek.dev/csi-gcs/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://ofek.dev/csi-gcs/getting_started/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://ofek.dev/csi-gcs/static_provisioning/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://ofek.dev/csi-gcs/dynamic_provisioning/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://ofek.dev/csi-gcs/contributing/setup/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://ofek.dev/csi-gcs/contributing/authors/</loc>
-     <lastmod>2020-04-26</lastmod>
+     <lastmod>2020-04-27</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
