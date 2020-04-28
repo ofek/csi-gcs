@@ -4,8 +4,8 @@ This page describes compatibility to the [CSI specification](https://github.com/
 
 ## Capacity
 
-:warning:
-**Google Cloud Storage does not allow to enforce capacity limits. Therefore, this driver is unable to provide capacity limit enforcement.**
+!!! warning "Important"
+    Google Cloud Storage has no concept of capacity limits. Therefore, this driver is unable to provide capacity limit enforcement.
 
 The driver only sets a `capacity` label for the `bucket` containing the requested bytes.
 
