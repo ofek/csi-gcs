@@ -30,6 +30,7 @@ nav:
   - Getting started: getting_started.md
   - Static provisioning: static_provisioning.md
   - Dynamic provisioning: dynamic_provisioning.md
+  - CSI Compatibility: csi_compatibility.md
   - Contributing:
     - Setup: contributing/setup.md
     - Authors: contributing/authors.md

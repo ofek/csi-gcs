@@ -103,6 +103,8 @@ parameters:
 | `csi.storage.k8s.io/node-publish-secret-namespace` | The namespace of the secret allowed to mount created buckets |
 | `csi.storage.k8s.io/provisioner-secret-name` | The name of the secret allowed to create buckets |
 | `csi.storage.k8s.io/provisioner-secret-namespace` | The namespace of the secret allowed to create buckets |
+| `csi.storage.k8s.io/controller-expand-secret-name` | The name of the secret allowed to expand [bucket capacity](csi_compatibility.md#capacity) |
+| `csi.storage.k8s.io/controller-expand-secret-namespace` | The namespace of the secret allowed to expand [bucket capacity](csi_compatibility.md#capacity) |
 | `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
 | `gcs.csi.ofek.dev/location` | The [location][gcs-location] to create buckets at (default `US` multi-region) |
 

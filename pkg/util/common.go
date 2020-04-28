@@ -84,7 +84,7 @@ func CreateDir(d string) error {
 	return nil
 }
 
-func GetKey(secrets map[string]string, options map[string]string, keyStoragePath string) (string, error) {
+func GetKey(secrets map[string]string, keyStoragePath string) (string, error) {
 	if _, err := os.Stat(keyStoragePath); os.IsNotExist(err) {
 		os.Mkdir(keyStoragePath, 0700)
 	}
