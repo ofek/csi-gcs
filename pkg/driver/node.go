@@ -90,7 +90,18 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	if err != nil {
 		return nil, err
 	}
+
+	err = util.RegisterMount(req.VolumeId, req.TargetPath, driver.nodeName, options)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := mounter.Mount(req.TargetPath); err != nil {
+		return nil, err
+	}
+
+	err = util.UpdateMountStatus(req.VolumeId, req.TargetPath, driver.nodeName, "MOUNTED")
+	if err != nil {
 		return nil, err
 	}
 
@@ -117,6 +128,11 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	klog.V(4).Infof("bucket %s has been unmounted.", req.GetVolumeId())
+
+	err = util.UnregisterMount(req.VolumeId, req.TargetPath, driver.nodeName)
+	if err != nil {
+		return nil, err
+	}
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }

@@ -1,0 +1,51 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: publishedvolumes.gcs.csi.ofek.dev
+spec:
+  group: gcs.csi.ofek.dev
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  preserveUnknownFields: false
+  scope: Cluster
+  names:
+    plural: publishedvolumes
+    singular: publishedvolume
+    kind: PublishedVolume
+  validation:
+    openAPIV3Schema:
+      type: object
+      required:
+        - spec
+      properties:
+        spec:
+          type: object
+          required:
+            - node
+            - targetPath
+            - persistentVolume
+            - options
+          properties:
+            node:
+              type: string
+            targetPath:
+              type: string
+            persistentVolume:
+              type: string
+            options:
+              type: object
+              additionalProperties:
+                type: string
+        status:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              enum:
+                - PENDING
+                - MOUNTED
+                - BACKOFF

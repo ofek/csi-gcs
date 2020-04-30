@@ -13,14 +13,17 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/ofek/csi-gcs/pkg/apis/published-volume/v1beta1"
+	gcs "github.com/ofek/csi-gcs/pkg/client/clientset/clientset"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"k8s.io/klog"
-
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog"
 )
 
 func ParseEndpoint(endpoint string) (string, string, error) {
@@ -182,4 +185,157 @@ func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[str
 	}
 
 	return pvc.ObjectMeta.Annotations, nil
+}
+
+func GetPv(pvName string) (pv *v1.PersistentVolume, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	pv, err = clientset.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return pv, nil
+}
+
+func GetCredentialsFromSecret(secretRef *v1.SecretReference) (map[string]string, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	credentials := map[string]string{}
+	secret, err := clientset.CoreV1().Secrets(secretRef.Namespace).Get(secretRef.Name, metav1.GetOptions{})
+	if err != nil {
+		return credentials, err
+	}
+	for key, value := range secret.Data {
+		credentials[key] = string(value)
+	}
+
+	return credentials, nil
+}
+
+func GetRegisteredMounts(node string) (list *v1beta1.PublishedVolumeList, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// creates the clientset
+	clientset, err := gcs.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return clientset.GcsV1beta1().PublishedVolumes().List(metav1.ListOptions{
+		LabelSelector: labels.Set(map[string]string{
+			"gcs.csi.ofek.dev/node": node,
+		}).String(),
+	})
+}
+
+func RegisterMount(volumeID string, targetPath string, node string, options map[string]string) (err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	// creates the clientset
+	clientset, err := gcs.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
+
+	_, err = clientset.GcsV1beta1().PublishedVolumes().Create(&v1beta1.PublishedVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Labels: map[string]string{
+				"gcs.csi.ofek.dev/node": node,
+			},
+		},
+		Spec: v1beta1.PublishedVolumeSpec{
+			Node:             node,
+			TargetPath:       targetPath,
+			PersistentVolume: volumeID,
+			Options:          options,
+		},
+		Status: v1beta1.PublishedVolumeStatus{
+			Name: "PENDING",
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateMountStatus(volumeID string, targetPath string, node string, status string) (err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	// creates the clientset
+	clientset, err := gcs.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
+
+	publishedVolume, err := clientset.GcsV1beta1().PublishedVolumes().Get(name, metav1.GetOptions{})
+	if err != nil {
+		return err
+
+	}
+
+	publishedVolume.Status.Name = status
+	_, err = clientset.GcsV1beta1().PublishedVolumes().Update(publishedVolume)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UnregisterMount(volumeID string, targetPath string, node string) (err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	// creates the clientset
+	clientset, err := gcs.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
+
+	delPropPolicy := metav1.DeletePropagationForeground
+	err = clientset.GcsV1beta1().PublishedVolumes().Delete(name, &metav1.DeleteOptions{
+		PropagationPolicy: &delPropPolicy,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/klog"
 
+	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
 )
 
@@ -54,6 +55,41 @@ func (d *GCSDriver) Run() error {
 			klog.Errorf("Method %s failed with error: %v", info.FullMethod, err)
 		}
 		return resp, err
+	}
+
+	publishedVolumes, err := util.GetRegisteredMounts(d.nodeName)
+	if err != nil {
+		return err
+	}
+
+	for _, publishedVolume := range publishedVolumes.Items {
+		persistedVolume, err := util.GetPv(publishedVolume.Spec.PersistentVolume)
+		if err != nil {
+			return err
+		}
+
+		secret, err := util.GetCredentialsFromSecret(persistedVolume.Spec.CSI.NodePublishSecretRef)
+		if err != nil {
+			return err
+		}
+
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(secret, KeyStoragePath)
+		if err != nil {
+			return err
+		}
+		defer util.CleanupKey(keyFile, KeyStoragePath)
+
+		mounter, err := NewGcsFuseMounter(publishedVolume.Spec.Options[flags.FLAG_BUCKET], keyFile, flags.ExtraFlags(publishedVolume.Spec.Options))
+		if err != nil {
+			return err
+		}
+
+		if err := mounter.Mount(publishedVolume.Spec.TargetPath); err != nil {
+			return err
+		}
+
+		err = util.UpdateMountStatus(publishedVolume.Spec.PersistentVolume, publishedVolume.Spec.TargetPath, d.nodeName, "MOUNTED")
 	}
 
 	klog.V(1).Infof("Starting Google Cloud Storage CSI Driver - driver: `%s`, version: `%s`, gRPC socket: `%s`", d.name, d.version, d.endpoint)
