@@ -98,7 +98,7 @@ ControllerValidateVolumeCapabilitiesSecret:
 
 ## Develop inside Docker
 
-Run all `invoke` commands through `invoke docker -c "[CMD]"`.
+Run all `invoke` commands through `invoke env -c "[CMD]"`.
 
 ## Regenerating the API Client
 
