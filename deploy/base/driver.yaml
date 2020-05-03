@@ -5,4 +5,4 @@ metadata:
 # https://kubernetes-csi.github.io/docs/csi-driver-object.html
 spec:
   attachRequired: false
-  podInfoOnMount: false
+  podInfoOnMount: true

@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: kube-system
 resources:
 - driver.yaml
+- published-volumes-crd.yaml
 - node-rbac.yaml
 - node-daemonset.yaml
 - controller-rbac.yaml

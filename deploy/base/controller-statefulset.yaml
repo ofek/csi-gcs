@@ -61,6 +61,7 @@ spec:
           - "--node-name=$(KUBE_NODE_NAME)"
           # https://github.com/kubernetes/community/blob/master/contributors/devel/sig-instrumentation/logging.md
           - "--v=5"
+          - "--delete-orphaned-pods=false"
           env:
           - name: KUBE_NODE_NAME
             valueFrom:

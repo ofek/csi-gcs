@@ -15,23 +15,25 @@ import (
 )
 
 type GCSDriver struct {
-	name       string
-	nodeName   string
-	endpoint   string
-	mountPoint string
-	version    string
-	server     *grpc.Server
-	mounter    mount.Interface
+	name               string
+	nodeName           string
+	endpoint           string
+	mountPoint         string
+	version            string
+	server             *grpc.Server
+	mounter            mount.Interface
+	deleteOrphanedPods bool
 }
 
-func NewGCSDriver(name, node, endpoint string, version string) (*GCSDriver, error) {
+func NewGCSDriver(name, node, endpoint string, version string, deleteOrphanedPods bool) (*GCSDriver, error) {
 	return &GCSDriver{
-		name:       name,
-		nodeName:   node,
-		endpoint:   endpoint,
-		mountPoint: BucketMountPath,
-		version:    version,
-		mounter:    mount.New(""),
+		name:               name,
+		nodeName:           node,
+		endpoint:           endpoint,
+		mountPoint:         BucketMountPath,
+		version:            version,
+		mounter:            mount.New(""),
+		deleteOrphanedPods: deleteOrphanedPods,
 	}, nil
 }
 
@@ -60,6 +62,14 @@ func (d *GCSDriver) Run() error {
 		return resp, err
 	}
 
+	if d.deleteOrphanedPods {
+		err = d.RunPodCleanup()
+
+		if err != nil {
+			klog.Errorf("RunPodCleanup failed with error: %v", err)
+		}
+	}
+
 	klog.V(1).Infof("Starting Google Cloud Storage CSI Driver - driver: `%s`, version: `%s`, gRPC socket: `%s`", d.name, d.version, d.endpoint)
 	d.server = grpc.NewServer(grpc.UnaryInterceptor(logHandler))
 	csi.RegisterIdentityServer(d.server, d)
@@ -71,4 +81,23 @@ func (d *GCSDriver) Run() error {
 func (d *GCSDriver) stop() {
 	d.server.Stop()
 	klog.V(1).Info("CSI driver stopped")
+}
+
+func (d *GCSDriver) RunPodCleanup() (err error) {
+	publishedVolumes, err := util.GetRegisteredMounts(d.nodeName)
+	if err != nil {
+		return err
+	}
+
+	for _, publishedVolume := range publishedVolumes.Items {
+		// Killing Pod because its Volume is no longer mounted
+		err = util.DeletePod(publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
+		if err == nil {
+			klog.V(4).Infof("Deleted Pod %s/%s bacause its volume was no longer mounted", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
+		} else {
+			klog.Errorf("Could not delete pod %s/%s because it was no longer mounted because of error: %v", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name, err)
+		}
+	}
+
+	return nil
 }

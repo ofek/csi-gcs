@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	version        = "development"
-	nodeNameFlag   = flag.String("node-name", "", "Node identifier")
-	driverNameFlag = flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
-	endpointFlag   = flag.String("csi-endpoint", "unix:///csi/csi.sock", "CSI endpoint")
-	versionFlag    = flag.Bool("version", false, "Print the version and exit")
+	version            = "development"
+	nodeNameFlag       = flag.String("node-name", "", "Node identifier")
+	driverNameFlag     = flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
+	endpointFlag       = flag.String("csi-endpoint", "unix:///csi/csi.sock", "CSI endpoint")
+	versionFlag        = flag.Bool("version", false, "Print the version and exit")
+	deleteOrphanedPods = flag.Bool("delete-orphaned-pods", false, "Delete Orphaned Pods on StartUp")
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	d, err := driver.NewGCSDriver(*driverNameFlag, *nodeNameFlag, *endpointFlag, version)
+	d, err := driver.NewGCSDriver(*driverNameFlag, *nodeNameFlag, *endpointFlag, version, *deleteOrphanedPods)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)

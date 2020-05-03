@@ -19,7 +19,8 @@ FROM golang:1.13.6-alpine3.11
 
 RUN apk add --update --no-cache fuse fuse-dev git upx python3 python3-dev py3-pip bash build-base docker
 
-COPY --from=build-gcsfuse /tmp/gcsfuse/bin/gcsfuse /usr/local/bin/gcsfuse
+COPY --from=build-gcsfuse /tmp/gcsfuse/bin/* /usr/local/bin/
+COPY --from=build-gcsfuse /tmp/gcsfuse/sbin/* /sbin/
 
 RUN python3 -m pip install --upgrade pip setuptools
 

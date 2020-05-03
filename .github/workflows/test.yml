@@ -79,4 +79,4 @@ jobs:
       # https://github.com/ofek/csi-gcs/issues/15
       continue-on-error: true
       run: |
-        invoke docker -c "invoke test.sanity"
+        invoke env -c "invoke test.sanity"
