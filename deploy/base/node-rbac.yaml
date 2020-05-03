@@ -12,6 +12,9 @@ rules:
   resources: ["secrets"]
   verbs: ["get", "list"]
 - apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["delete"]
+- apiGroups: [""]
   resources: ["nodes"]
   verbs: ["get", "list", "update"]
 - apiGroups: [""]
@@ -23,6 +26,9 @@ rules:
 - apiGroups: ["storage.k8s.io"]
   resources: ["volumeattachments"]
   verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["gcs.csi.ofek.dev"]
+  resources: ["publishedvolumes"]
+  verbs: ["get", "list", "watch", "update", "create", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

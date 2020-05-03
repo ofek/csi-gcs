@@ -35,7 +35,7 @@ func TestCsiGcs(t *testing.T) {
 	var endpoint = "unix://"
 	endpoint += endpointFile.Name()
 
-	d, err := driver.NewGCSDriver(driver.CSIDriverName, "test-node", endpoint, "development")
+	d, err := driver.NewGCSDriver(driver.CSIDriverName, "test-node", endpoint, "development", false)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)

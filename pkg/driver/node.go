@@ -102,8 +102,8 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	if req.GetReadonly() {
 		mountOptions = append(mountOptions, "ro")
 	}
-	err = driver.mounter.Mount(options[flags.FLAG_BUCKET], req.TargetPath, "gcsfuse", mountOptions)
 
+	err = driver.mounter.Mount(options[flags.FLAG_BUCKET], req.TargetPath, "gcsfuse", mountOptions)
 	if err != nil {
 		if os.IsPermission(err) {
 			return nil, status.Error(codes.PermissionDenied, err.Error())
@@ -112,6 +112,20 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if driver.deleteOrphanedPods {
+		err = util.RegisterMount(
+			req.VolumeId,
+			req.TargetPath,
+			driver.nodeName,
+			req.VolumeContext["csi.storage.k8s.io/pod.namespace"],
+			req.VolumeContext["csi.storage.k8s.io/pod.name"],
+			options,
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &csi.NodePublishVolumeResponse{}, nil
@@ -134,7 +148,12 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 		if os.IsNotExist(err) {
 			return nil, status.Error(codes.NotFound, "Targetpath not found")
 		}
-		return nil, status.Error(codes.Internal, err.Error())
+		// This error happens when the node container is restarted and the connection is lost
+		if strings.Contains(err.Error(), "transport endpoint is not connected") {
+			notMnt = false
+		} else {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 	if notMnt {
 		return nil, status.Error(codes.NotFound, "Volume not mounted")
@@ -143,6 +162,13 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 	err = mount.CleanupMountPoint(req.GetTargetPath(), driver.mounter, false)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if driver.deleteOrphanedPods {
+		err = util.UnregisterMount(req.VolumeId, req.TargetPath, driver.nodeName)
+		if err != nil {
+			klog.Error(err)
+		}
 	}
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
