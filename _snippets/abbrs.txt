@@ -1,6 +1,0 @@
-*[CSI]: Container Storage Interface
-*[PVC]: Persistent Volume Claim
-*[PV]: Persistent Volume
-*[SC]: Storage Class
-*[GCS]: Google Cloud Storage
-*[GCP]: Google Cloud Platform
