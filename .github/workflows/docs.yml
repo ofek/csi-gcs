@@ -1,10 +1,9 @@
 name: Documentation
 
 on:
-  create:
-    tags:
-    - 'v*'
   push:
+    tags:
+    - v*
     paths:
     - docs/**
     - .github/workflows/docs.yml
