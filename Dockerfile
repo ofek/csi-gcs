@@ -1,9 +1,14 @@
-FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
+FROM golang:1.13.6-alpine3.11 AS build
 
+ARG version
 ARG gcsfuse_version
 ARG global_ldflags
+ARG upx_flags
 
-RUN apk add --update --no-cache fuse fuse-dev git
+ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
+ENV UPX ${upx_flags}
+
+RUN apk add --update --no-cache fuse fuse-dev git upx
 
 WORKDIR ${GOPATH}
 
@@ -16,33 +21,37 @@ RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
 RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
-FROM golang:1.13.6-alpine3.11 AS compress-gcfsuse
+# We don't need mount(8) compatibility as we call the binary directly, so only copy that
+RUN mv /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
 
-ARG upx_flags
-ENV UPX ${upx_flags}
+RUN mkdir -p ${DRIVER}
+WORKDIR ${DRIVER}
 
-RUN apk add --update --no-cache upx
+COPY go.mod go.sum ${DRIVER}
+COPY cmd ${DRIVER}/cmd
+COPY pkg ${DRIVER}/pkg
 
-COPY --from=build-gcsfuse /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
-
-# Compress the binaries
-RUN if [ "${UPX}" != "" ]; then \
-        upx /tmp/bin/gcsfuse; \
-    fi
-
-FROM golang:1.13.6-alpine3.11 AS compress-csi-gcs
-
-ARG upx_flags
-ENV UPX ${upx_flags}
-
-RUN apk add --update --no-cache upx
-
-COPY bin/driver /tmp/bin/driver
+# Build the driver
+RUN go build -o /tmp/bin/driver -ldflags "all=${global_ldflags}" -ldflags "-X github.com/ofek/csi-gcs/pkg/driver.driverVersion=${version} ${global_ldflags}" ./cmd
 
 # Compress the binaries
 RUN if [ "${UPX}" != "" ]; then \
-        upx /tmp/bin/driver; \
+        upx /tmp/bin/driver \
+     && upx /tmp/bin/gcsfuse; \
     fi
+
+FROM golang:1.13.6-alpine3.11 AS test
+
+RUN apk add build-base fuse fuse-dev git upx --update --no-cache
+
+ENV DRIVER ${GOPATH}/src/github.com/ofek/csi-gcs/
+
+RUN mkdir -p ${DRIVER}
+WORKDIR ${DRIVER}
+
+COPY --from=build /tmp/bin/* /usr/local/bin/
+COPY --from=build ${GOPATH} ${GOPATH}
+COPY test ${DRIVER}/test
 
 FROM alpine:3.11
 
@@ -66,6 +75,5 @@ WORKDIR /
 ENTRYPOINT ["/usr/local/bin/driver"]
 
 # Copy the binaries
-COPY --from=compress-gcfsuse /tmp/bin/* /usr/local/bin/
-COPY --from=build-gcsfuse /tmp/gcsfuse/sbin/* /sbin/
-COPY --from=compress-csi-gcs /tmp/bin/* /usr/local/bin/
+COPY --from=build /tmp/bin/* /usr/local/bin/
+COPY --from=build /tmp/gcsfuse/sbin/* /sbin/

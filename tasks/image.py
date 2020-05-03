@@ -1,7 +1,8 @@
 from invoke import task
 
-from .constants import DRIVER_NAME, GCSFUSE_VERSION
-from .utils import image_name, image_tags
+from .constants import GCSFUSE_VERSION
+from .utils import get_version, image_name, image_tags
+
 
 @task(
     help={
@@ -23,7 +24,8 @@ def build(ctx, release=False, compress=False, gcsfuse=GCSFUSE_VERSION):
     image = image_name()
 
     ctx.run(
-        f'docker build . --tag {image} '
+        f'docker build . --tag "{image}" '
+        f'--build-arg version="{get_version()}" '
         f'--build-arg global_ldflags="{global_ldflags}" '
         f'--build-arg gcsfuse_version="{gcsfuse}" '
         f'--build-arg upx_flags="{upx_flags}" '
@@ -33,6 +35,7 @@ def build(ctx, release=False, compress=False, gcsfuse=GCSFUSE_VERSION):
 
     for tag in image_tags():
         ctx.run(f'docker tag {image} {image_name(tag)}', echo=True)
+
 
 @task
 def deploy(ctx):

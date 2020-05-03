@@ -31,10 +31,6 @@
 ## Rebuild & Test Manually in Minikube
 
 ```console
-# Build Binary
-invoke build
-
-# Build Container
 invoke image
 ```
 
@@ -43,24 +39,23 @@ Afterwards kill the currently running pod.
 ## Documentation
 
 ```console
-# Build
-invoke docs.build
-
-# Server
 invoke docs.serve
 ```
-
 
 ## Sanity Tests
 
 Needs root privileges and `gcsfuse` installed, execution via docker recommended.
 
-```console
-# Local
-invoke test.sanity
+Docker:
 
-# Docker
-invoke docker -c "invoke test.sanity"
+```console
+invoke env -c "invoke test.sanity"
+```
+
+Local:
+
+```console
+invoke test.sanity
 ```
 
 Additionally the file `./test/secret.yaml` has to be created with the following content:
