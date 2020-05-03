@@ -4,12 +4,6 @@ on:
   push:
     tags:
     - v*
-    paths:
-    - docs/**
-    - .github/workflows/docs.yml
-    - tasks/docs.py
-    - mkdocs.yml
-    - tox.ini
   pull_request:
     paths:
     - docs/**
@@ -50,8 +44,8 @@ jobs:
   publish:
     name: Publish Docs
     runs-on: ubuntu-latest
-    # Only publish master or tags
-    if: github.event.ref_type == 'tag' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    # Only publish tags
+    if: github.event.ref_type == 'tag'
     needs:
       - build
     steps:
