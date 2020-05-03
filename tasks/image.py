@@ -21,7 +21,7 @@ def build(ctx, release=False, compress=False, gcsfuse=GCSFUSE_VERSION):
         docker_build_args = ''
 
     upx_flags = '--best --ultra-brute' if compress else ''
-    image = image_name()
+    image = image_name(None if release else 'dev')
 
     ctx.run(
         f'docker build . --tag "{image}" '
@@ -33,8 +33,9 @@ def build(ctx, release=False, compress=False, gcsfuse=GCSFUSE_VERSION):
         echo=True,
     )
 
-    for tag in image_tags():
-        ctx.run(f'docker tag {image} {image_name(tag)}', echo=True)
+    if release:
+        for tag in image_tags():
+            ctx.run(f'docker tag {image} {image_name(tag)}', echo=True)
 
 
 @task
