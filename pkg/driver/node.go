@@ -2,7 +2,10 @@ package driver
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"strconv"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -11,6 +14,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
+	"k8s.io/utils/mount"
 
 	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
@@ -59,7 +63,6 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	if err != nil {
 		return nil, err
 	}
-	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	// Creates a client.
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
@@ -78,20 +81,37 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		return nil, status.Errorf(codes.NotFound, "Bucket %s does not exist", options[flags.FLAG_BUCKET])
 	}
 
-	notMnt, err := CheckMount(req.TargetPath)
+	notMnt, err := driver.mounter.IsLikelyNotMountPoint(req.TargetPath)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(req.TargetPath, 0750); err != nil {
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+			notMnt = true
+		} else {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
+
 	if !notMnt {
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
-	mounter, err := NewGcsFuseMounter(options[flags.FLAG_BUCKET], keyFile, flags.ExtraFlags(options))
-	if err != nil {
-		return nil, err
+	mountOptions := []string{fmt.Sprintf("key_file=%s", keyFile), "allow_other"}
+	mountOptions = append(mountOptions, flags.ExtraFlags(options)...)
+	if req.GetReadonly() {
+		mountOptions = append(mountOptions, "ro")
 	}
-	if err := mounter.Mount(req.TargetPath); err != nil {
-		return nil, err
+	err = driver.mounter.Mount(options[flags.FLAG_BUCKET], req.TargetPath, "gcsfuse", mountOptions)
+
+	if err != nil {
+		if os.IsPermission(err) {
+			return nil, status.Error(codes.PermissionDenied, err.Error())
+		}
+		if strings.Contains(err.Error(), "invalid argument") {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &csi.NodePublishVolumeResponse{}, nil
@@ -108,15 +128,22 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
 	}
 
-	notMount, err := CheckMount(req.GetTargetPath())
-	if err != nil || notMount {
-		return &csi.NodeUnpublishVolumeResponse{}, nil
-	}
+	notMnt, err := driver.mounter.IsLikelyNotMountPoint(req.TargetPath)
 
-	if err := FuseUnmount(req.GetTargetPath()); err != nil {
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, status.Error(codes.NotFound, "Targetpath not found")
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	klog.V(4).Infof("bucket %s has been unmounted.", req.GetVolumeId())
+	if notMnt {
+		return nil, status.Error(codes.NotFound, "Volume not mounted")
+	}
+
+	err = mount.CleanupMountPoint(req.GetTargetPath(), driver.mounter, false)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
@@ -170,9 +197,17 @@ func (driver *GCSDriver) NodeExpandVolume(ctx context.Context, req *csi.NodeExpa
 		return nil, status.Error(codes.InvalidArgument, "Volume path missing in request")
 	}
 
-	notMount, err := CheckMount(req.GetVolumePath())
-	if err != nil || notMount {
-		return nil, status.Error(codes.NotFound, "Volume is not mounted")
+	notMnt, err := driver.mounter.IsLikelyNotMountPoint(req.GetVolumePath())
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, status.Error(codes.NotFound, "Targetpath not found")
+		} else {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	if notMnt {
+		return nil, status.Error(codes.NotFound, "Volume not mounted")
 	}
 
 	return &csi.NodeExpandVolumeResponse{}, nil

@@ -91,7 +91,7 @@ var _ = Describe("Flags", func() {
 						"dirMode":          "0600",
 					},
 				),
-			).To(Equal([]string{"--o", "foo,bar,baz", "--dir-mode", "0600", "--implicit-dirs"}))
+			).To(Equal([]string{"foo", "bar", "baz", "dir_mode=0600", "implicit_dirs"}))
 		})
 	})
 })
