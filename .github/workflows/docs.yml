@@ -1,11 +1,16 @@
 name: Documentation
 
 on:
-  push:
-    branches:
-    - "*"
+  create:
     tags:
-    - v*
+    - 'v*'
+  push:
+    paths:
+    - docs/**
+    - .github/workflows/docs.yml
+    - tasks/docs.py
+    - mkdocs.yml
+    - tox.ini
   pull_request:
     paths:
     - docs/**
@@ -47,7 +52,7 @@ jobs:
     name: Publish Docs
     runs-on: ubuntu-latest
     # Only publish tags
-    if: github.event.ref_type == 'tag'
+    if: github.event_name == 'create' && github.event.ref_type == 'tag'
     needs:
       - build
     steps:
