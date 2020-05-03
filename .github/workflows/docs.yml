@@ -2,12 +2,10 @@ name: Documentation
 
 on:
   push:
-    paths:
-    - docs/**
-    - .github/workflows/docs.yml
-    - tasks/docs.py
-    - mkdocs.yml
-    - tox.ini
+    branches:
+    - "*"
+    tags:
+    - v*
   pull_request:
     paths:
     - docs/**
@@ -22,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
+    - name: Fetch Tags
+      run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v1
@@ -45,8 +46,8 @@ jobs:
   publish:
     name: Publish Docs
     runs-on: ubuntu-latest
-    # Only publish master
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # Only publish tags
+    if: github.event.ref_type == 'tag'
     needs:
       - build
     steps:

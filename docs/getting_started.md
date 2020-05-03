@@ -11,7 +11,7 @@ respectively.
 Run
 
 ```console
-kubectl apply -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master"
+kubectl apply -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=<STABLE_VERSION>"
 ```
 
 Now the output from running the command
