@@ -99,3 +99,11 @@ ControllerValidateVolumeCapabilitiesSecret:
 ## Develop inside Docker
 
 Run all `invoke` commands through `invoke docker -c "[CMD]"`.
+
+## Regenerating the API Client
+
+If any changes are made in the `pkg/apis` package, the `pkg/client` needs to be regenerated.
+
+To do this, the project has to be checked out in the `$GOPATH/src/github.com/ofek/csi-gcs` directory, since [K8S Codegen](https://github.com/kubernetes/code-generator) is not working with Go Modules properly.
+
+To regenerate the client package, run `./hack/update-codegen.sh`.
