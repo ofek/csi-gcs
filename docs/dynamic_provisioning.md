@@ -17,7 +17,7 @@ kubectl create secret generic csi-gcs-secret-creator --from-file=key=<PATH_TO_SE
 Let's run another example application!
 
 ```console
-kubectl apply -k "github.com/ofek/csi-gcs/examples/dynamic?ref=master"
+kubectl apply -k "github.com/ofek/csi-gcs/examples/dynamic?ref=<STABLE_VERSION>"
 ```
 
 Confirm it's working by running
@@ -72,9 +72,9 @@ To clean up everything, run the following commands
 kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/deployment.yaml"
 kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/pvc.yaml"
 kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/sc.yaml"
+kubectl delete -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=<STABLE_VERSION>"
 kubectl delete secret csi-gcs-secret-creator
 kubectl delete secret csi-gcs-secret-mounter
-kubectl delete -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=master"
 ```
 
 ??? note

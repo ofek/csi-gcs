@@ -2,6 +2,8 @@ name: Documentation
 
 on:
   push:
+    tags:
+    - v*
     paths:
     - docs/**
     - .github/workflows/docs.yml
@@ -45,8 +47,8 @@ jobs:
   publish:
     name: Publish Docs
     runs-on: ubuntu-latest
-    # Only publish master
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # Only publish master or tags
+    if: github.event.ref_type == 'tag' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
     needs:
       - build
     steps:

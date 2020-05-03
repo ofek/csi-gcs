@@ -55,8 +55,7 @@ markdown_extensions:
       toc_depth: "2-6"
   # Extra
   - mkpatcher:
-      script: |
-        lines.extend(('', '--8<-- "refs.txt"', ''))
+      location: docs/.scripts
   - pymdownx.arithmatex:
   - pymdownx.betterem:
       smart_enable: all
@@ -84,7 +83,7 @@ markdown_extensions:
   - pymdownx.mark:
   - pymdownx.smartsymbols:
   - pymdownx.snippets:
-      base_path: docs/_snippets
+      base_path: docs/.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
