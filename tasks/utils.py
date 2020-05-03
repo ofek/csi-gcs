@@ -55,7 +55,7 @@ def image_tags():
     last_tag_ref = subprocess.run(['git', 'rev-list', '-n1', last_tag.stdout.decode('utf-8').strip()], stdout=subprocess.PIPE, cwd=get_root())
 
     if last_tag_ref.stdout.decode('utf-8').strip() == current_ref.stdout.decode('utf-8').strip():
-        return [last_tag.stdout.decode('utf-8').strip(), 'latest']
+        return [last_tag.stdout.decode('utf-8').strip(), 'latest', 'dev']
 
     return ['dev']
 
