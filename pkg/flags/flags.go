@@ -342,28 +342,26 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 
 func FlagNameToGcsfuseOption(flag string) string {
 	switch flag {
-	case FLAG_FUSE_MOUNT_OPTION:
-		return "o"
 	case FLAG_DIR_MODE:
-		return "dir-mode"
+		return "dir_mode"
 	case FLAG_FILE_MODE:
-		return "file-mode"
+		return "file_mode"
 	case FLAG_UID:
 		return "uid"
 	case FLAG_GID:
 		return "gid"
 	case FLAG_IMPLICIT_DIRS:
-		return "implicit-dirs"
+		return "implicit_dirs"
 	case FLAG_BILLING_PROJECT:
-		return "billing-project"
+		return "billing_project"
 	case FLAG_LIMIT_BYTES_PER_SEC:
-		return "limit-bytes-per-sec"
+		return "limit_bytes_per_sec"
 	case FLAG_LIMIT_OPS_PER_SEC:
-		return "limit-ops-per-sec"
+		return "limit_ops_per_sec"
 	case FLAG_STAT_CACHE_TTL:
-		return "stat-cache-ttl"
+		return "stat_cache_ttl"
 	case FLAG_TYPE_CACHE_TTL:
-		return "type-cache-ttl"
+		return "type_cache_ttl"
 	}
 	return ""
 }
@@ -373,7 +371,7 @@ func MaybeAddFlag(result []string, flags map[string]string, name string) []strin
 
 	value, found := flags[name]
 	if found {
-		result = append(result, "--"+argName, value)
+		result = append(result, argName+"="+value)
 	}
 	return result
 }
@@ -382,7 +380,15 @@ func MaybeAddBooleanFlag(result []string, flags map[string]string, name string) 
 
 	value, found := flags[name]
 	if found && value == "true" {
-		result = append(result, "--"+argName)
+		result = append(result, argName)
+	}
+	return result
+}
+
+func MaybeAddDirectFlag(result []string, flags map[string]string, name string) []string {
+	value, found := flags[name]
+	if found {
+		result = append(result, strings.Split(value, ",")...)
 	}
 	return result
 }
@@ -390,7 +396,7 @@ func MaybeAddBooleanFlag(result []string, flags map[string]string, name string) 
 func ExtraFlags(flags map[string]string) (result []string) {
 	result = []string{}
 
-	result = MaybeAddFlag(result, flags, FLAG_FUSE_MOUNT_OPTION)
+	result = MaybeAddDirectFlag(result, flags, FLAG_FUSE_MOUNT_OPTION)
 	result = MaybeAddFlag(result, flags, FLAG_DIR_MODE)
 	result = MaybeAddFlag(result, flags, FLAG_FILE_MODE)
 	result = MaybeAddFlag(result, flags, FLAG_UID)

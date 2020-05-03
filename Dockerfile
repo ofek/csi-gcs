@@ -3,7 +3,7 @@ FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
 ARG gcsfuse_version
 ARG global_ldflags
 
-RUN apk add --update --no-cache fuse fuse-dev git upx
+RUN apk add --update --no-cache fuse fuse-dev git
 
 WORKDIR ${GOPATH}
 
@@ -67,4 +67,5 @@ ENTRYPOINT ["/usr/local/bin/driver"]
 
 # Copy the binaries
 COPY --from=compress-gcfsuse /tmp/bin/* /usr/local/bin/
+COPY --from=build-gcsfuse /tmp/gcsfuse/sbin/* /sbin/
 COPY --from=compress-csi-gcs /tmp/bin/* /usr/local/bin/

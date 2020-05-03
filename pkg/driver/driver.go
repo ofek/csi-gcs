@@ -10,6 +10,8 @@ import (
 	"k8s.io/klog"
 
 	"github.com/ofek/csi-gcs/pkg/util"
+
+	"k8s.io/utils/mount"
 )
 
 type GCSDriver struct {
@@ -19,6 +21,7 @@ type GCSDriver struct {
 	mountPoint string
 	version    string
 	server     *grpc.Server
+	mounter    mount.Interface
 }
 
 func NewGCSDriver(name, node, endpoint string, version string) (*GCSDriver, error) {
@@ -28,6 +31,7 @@ func NewGCSDriver(name, node, endpoint string, version string) (*GCSDriver, erro
 		endpoint:   endpoint,
 		mountPoint: BucketMountPath,
 		version:    version,
+		mounter:    mount.New(""),
 	}, nil
 }
 
