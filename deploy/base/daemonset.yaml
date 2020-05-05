@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: csi-gcs-node
+  name: csi-gcs
 spec:
   selector:
     matchLabels:
-      app: csi-gcs-node
+      app: csi-gcs
   template:
     metadata:
       labels:
-        app: csi-gcs-node
+        app: csi-gcs
     spec:
       hostNetwork: true
-      serviceAccount: csi-gcs-node
+      serviceAccount: csi-gcs
       containers:
       - name: csi-node-driver-registrar
         image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
@@ -36,7 +36,39 @@ spec:
           mountPath: /registration
         - name: socket-dir
           mountPath: /csi
-      - name: csi-gcs-node
+      - name: csi-provisioner
+        image: quay.io/k8scsi/csi-provisioner:v1.6.0
+        args:
+          - "--csi-address=$(ADDRESS)"
+          - "--extra-create-metadata"
+          - "--enable-leader-election"
+          - "--leader-election-namespace=$(NAMESPACE)"
+        env:
+          - name: ADDRESS
+            value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: NAMESPACE
+            value: kube-system
+        imagePullPolicy: "IfNotPresent"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /var/lib/csi/sockets/pluginproxy/
+      - name: csi-resizer
+        image: quay.io/k8scsi/csi-resizer:v0.2.0
+        args:
+          - "--v=5"
+          - "--csi-address=$(ADDRESS)"
+          - "--leader-election"
+          - "--leader-election-namespace=$(NAMESPACE)"
+        env:
+          - name: ADDRESS
+            value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: NAMESPACE
+            value: kube-system
+        imagePullPolicy: "IfNotPresent"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /var/lib/csi/sockets/pluginproxy/
+      - name: csi-gcs
         securityContext:
           privileged: true
           capabilities:
