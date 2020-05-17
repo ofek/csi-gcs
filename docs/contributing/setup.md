@@ -18,10 +18,16 @@
     - Login to `gcloud` (`gcloud auth login`)
 * Google Cloud Project
     - Create Test Project (`gcloud projects create [PROJECT_ID] --name=[PROJECT_NAME]`)
+* Enable Storage Transfer API
+    - Visit https://console.developers.google.com/apis/library/storagetransfer.googleapis.com
+    - Enable API
+    - Setup Access (https://cloud.google.com/storage-transfer/docs/configure-access)
+      - `gcloud projects add-iam-policy-binding [PROJECT_ID] --member=serviceAccount:project-[PROJECT_NUMBER]@storage-transfer-service.iam.gserviceaccount.com --role=roles/storage.admin`
 * Google Cloud Service Account
     - Create (`gcloud iam service-accounts create [ACCOUNT_NAME] --display-name="Test Account" --description="Test Account for GCS CSI" --project=[PROJECT_ID]`)
     - Create Key (`gcloud iam service-accounts keys create service-account.json --iam-account=[ACCOUNT_NAME]@[PROJECT_ID].iam.gserviceaccount.com  --project=[PROJECT_ID]`)
     - Give Storage Admin Permission (`gcloud projects add-iam-policy-binding [PROJECT_ID] --member=serviceAccount:[ACCOUNT_NAME]@[PROJECT_ID].iam.gserviceaccount.com --role=roles/storage.admin`)
+    - Give Transfer User Permission (`gcloud projects add-iam-policy-binding [PROJECT_ID] --member=serviceAccount:[ACCOUNT_NAME]@[PROJECT_ID].iam.gserviceaccount.com --role=roles/storagetransfer.user`)
 * Create Secret
     - `kubectl create secret generic csi-gcs-secret --from-file=key=service-account.json`
 * Pull Needed Images
@@ -91,6 +97,18 @@ NodePublishVolumeSecret:
   key: |
     [Storage Object Admin Key JSON]
 ControllerValidateVolumeCapabilitiesSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+ControllerExpandVolumeSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+CreateSnapshotSecret:
+  projectId: [Google Cloud Project ID]
+  key: |
+    [Storage Admin Key JSON]
+DeleteSnapshotSecret:
   projectId: [Google Cloud Project ID]
   key: |
     [Storage Admin Key JSON]

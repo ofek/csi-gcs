@@ -11,11 +11,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/ofek/csi-gcs/pkg/apis/published-volume/v1beta1"
 	gcs "github.com/ofek/csi-gcs/pkg/client/clientset/clientset"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+	"google.golang.org/api/storagetransfer/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -140,6 +143,16 @@ func BucketCapacity(attrs *storage.BucketAttrs) (int64, error) {
 	}
 
 	return 0, nil
+}
+
+func BucketIs(attrs *storage.BucketAttrs, bucketType string) bool {
+	for labelName, labelValue := range attrs.Labels {
+		if labelName == "type" && labelValue != bucketType {
+			return false
+		}
+	}
+
+	return true
 }
 
 func SetBucketCapacity(ctx context.Context, bucket *storage.BucketHandle, capacity int64) (attrs *storage.BucketAttrs, err error) {
@@ -278,6 +291,44 @@ func UnregisterMount(volumeID string, targetPath string, node string) (err error
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func CopyBucketContent(ctx context.Context, keyFile string, projectID string, source string, destination string) (err error) {
+	storageTransferClient, err := storagetransfer.NewService(ctx, option.WithCredentialsFile(keyFile))
+	if err != nil {
+		return status.Errorf(codes.Internal, "Failed to create client: %v", err)
+	}
+
+	loc, _ := time.LoadLocation("UTC")
+	now := time.Now().In(loc)
+	today := &storagetransfer.Date{
+		Day:   int64(now.Day()),
+		Month: int64(now.Month()),
+		Year:  int64(now.Year()),
+	}
+
+	_, err = storageTransferClient.TransferJobs.Create(&storagetransfer.TransferJob{
+		ProjectId: projectID,
+		Status:    "ENABLED",
+		Schedule: &storagetransfer.Schedule{
+			ScheduleStartDate: today,
+			ScheduleEndDate:   today,
+		},
+		TransferSpec: &storagetransfer.TransferSpec{
+			GcsDataSource: &storagetransfer.GcsData{
+				BucketName: source,
+			},
+			GcsDataSink: &storagetransfer.GcsData{
+				BucketName: destination,
+			},
+		},
+	}).Context(ctx).Do()
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "Failed to copy data: %v", err)
 	}
 
 	return nil

@@ -5,6 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.38.0
 	github.com/container-storage-interface/spec v1.2.0
+	github.com/golang/protobuf v1.3.2
 	github.com/kubernetes-csi/csi-lib-utils v0.7.0
 	github.com/kubernetes-csi/csi-test v2.2.0+incompatible // indirect
 	github.com/kubernetes-csi/csi-test/v3 v3.1.0
