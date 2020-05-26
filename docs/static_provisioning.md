@@ -30,31 +30,31 @@ kubectl get pods,pv,pvc
 You should see something like
 
 ```
-NAME                              READY   STATUS    RESTARTS   AGE
-pod/csi-gcs-test-cbc546b4-5kb7h   2/2     Running   0          1m40s
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/csi-gcs-test-5f677df9f9-f59km   2/2     Running   0          10s
 
 NAME                          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS      REASON   AGE
-persistentvolume/csi-gcs-pv   5Gi        RWO            Retain           Bound    default/csi-gcs-pvc   csi-gcs-test-sc            1m40s
+persistentvolume/csi-gcs-pv   5Gi        RWO            Retain           Bound    default/csi-gcs-pvc   csi-gcs-test-sc            10s
 
 NAME                                STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS      AGE
-persistentvolumeclaim/csi-gcs-pvc   Bound    csi-gcs-pv   5Gi        RWO            csi-gcs-test-sc   1m40s
+persistentvolumeclaim/csi-gcs-pvc   Bound    csi-gcs-pv   5Gi        RWO            csi-gcs-test-sc   10s
 ```
 
-Note the pod name, in this case `csi-gcs-test-cbc546b4-5kb7h`. The pod in the example deployment has 2 containers: a `writer` and a `reader`.
+Note the pod name, in this case `csi-gcs-test-5f677df9f9-f59km`. The pod in the example deployment has 2 containers: a `writer` and a `reader`.
 
 Now create some data!
 
 ```console
-kubectl exec csi-gcs-test-cbc546b4-5kb7h -c writer -- /bin/sh -c "echo Hello from Google Cloud Storage! > /data/test.txt"
+kubectl exec csi-gcs-test-5f677df9f9-f59km -c writer -- /bin/sh -c "echo Hello from Google Cloud Storage! > /data/test.txt"
 ```
 
 Let's read what we just put in the bucket
 
 ```
-$ kubectl exec csi-gcs-test-cbc546b4-5kb7h -c reader -it -- /bin/sh
+$ kubectl exec csi-gcs-test-5f677df9f9-f59km -c reader -it -- /bin/sh
 / # ls -lh /data
 total 1K
--rw-r--r--    1 root     root          33 Jan 26 17:55 test.txt
+-rw-r--r--    1 root     root          33 May 26 21:23 test.txt
 / # cat /data/test.txt
 Hello from Google Cloud Storage!
 ```
