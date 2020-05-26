@@ -146,7 +146,7 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, status.Error(codes.NotFound, "Targetpath not found")
+			return &csi.NodeUnpublishVolumeResponse{}, nil
 		}
 		// This error happens when the node container is restarted and the connection is lost
 		if strings.Contains(err.Error(), "transport endpoint is not connected") {
@@ -156,7 +156,7 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 		}
 	}
 	if notMnt {
-		return nil, status.Error(codes.NotFound, "Volume not mounted")
+		return &csi.NodeUnpublishVolumeResponse{}, nil
 	}
 
 	err = mount.CleanupMountPoint(req.GetTargetPath(), driver.mounter, false)
