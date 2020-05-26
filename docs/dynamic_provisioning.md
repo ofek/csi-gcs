@@ -23,37 +23,40 @@ kubectl apply -k "github.com/ofek/csi-gcs/examples/dynamic?ref=<STABLE_VERSION>"
 Confirm it's working by running
 
 ```console
-kubectl get pods,pv,pvc
+kubectl get pods,sc,pv,pvc
 ```
 
 You should see something like
 
 ```
 NAME                                READY   STATUS    RESTARTS   AGE
-pod/csi-gcs-test-68dbf75685-p7x4g   2/2     Running   0          11s
+pod/csi-gcs-test-5f677df9f9-qd8nt   2/2     Running   0          100s
+
+NAME                                             PROVISIONER          AGE
+storageclass.storage.k8s.io/csi-gcs              gcs.csi.ofek.dev     100s
 
 NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS   REASON   AGE
-persistentvolume/pvc-3cd15760-b893-40c8-93d4-c93b121c7400   5Gi        RWO            Retain           Bound    default/csi-gcs-pvc   csi-gcs                 10s
+persistentvolume/pvc-906ed812-2c06-4eaa-a80e-7115e8ffd653   5Gi        RWO            Delete           Bound    default/csi-gcs-pvc   csi-gcs                 98s
 
 NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-persistentvolumeclaim/csi-gcs-pvc   Bound    pvc-3cd15760-b893-40c8-93d4-c93b121c7400   5Gi        RWO            csi-gcs        11s
+persistentvolumeclaim/csi-gcs-pvc   Bound    pvc-906ed812-2c06-4eaa-a80e-7115e8ffd653   5Gi        RWO            csi-gcs        100s
 ```
 
-Note the pod name, in this case `csi-gcs-test-68dbf75685-p7x4g`. The pod in the example deployment has 2 containers: a `writer` and a `reader`.
+Note the pod name, in this case `csi-gcs-test-5f677df9f9-qd8nt`. The pod in the example deployment has 2 containers: a `writer` and a `reader`.
 
 Now create some data!
 
 ```console
-kubectl exec csi-gcs-test-68dbf75685-p7x4g -c writer -- /bin/sh -c "echo Hello from Google Cloud Storage! > /data/test.txt"
+kubectl exec csi-gcs-test-5f677df9f9-qd8nt -c writer -- /bin/sh -c "echo Hello from Google Cloud Storage! > /data/test.txt"
 ```
 
 Let's read what we just put in the bucket
 
 ```
-$ kubectl exec csi-gcs-test-68dbf75685-p7x4g -c reader -it -- /bin/sh
+$ kubectl exec csi-gcs-test-5f677df9f9-qd8nt -c reader -it -- /bin/sh
 / # ls -lh /data
 total 1K
--rw-r--r--    1 root     root          33 Apr 19 16:18 test.txt
+-rw-r--r--    1 root     root          33 May 26 21:23 test.txt
 / # cat /data/test.txt
 Hello from Google Cloud Storage!
 ```
@@ -69,9 +72,9 @@ touch: /data/forbidden.txt: Read-only file system
 To clean up everything, run the following commands
 
 ```console
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/deployment.yaml"
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/pvc.yaml"
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/sc.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/deployment.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/pvc.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/sc.yaml"
 kubectl delete -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=<STABLE_VERSION>"
 kubectl delete secret csi-gcs-secret-creator
 kubectl delete secret csi-gcs-secret-mounter

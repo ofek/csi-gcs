@@ -17,31 +17,26 @@ kubectl apply -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=<STABLE_VER
 Now the output from running the command
 
 ```console
-kubectl get CSIDriver,daemonsets,statefulsets,pods -n kube-system
+kubectl get CSIDriver,daemonsets,pods -n kube-system
 ```
 
 should contain something like
 
 ```
 NAME                                        CREATED AT
-csidriver.storage.k8s.io/gcs.csi.ofek.dev   2020-04-19T03:35:52Z
+csidriver.storage.k8s.io/gcs.csi.ofek.dev   2020-05-26T21:03:14Z
 
-NAME                                DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR                 AGE
-daemonset.extensions/csi-gcs-node   1         1         1       1            1           <none>                        4s
-
-NAME                                  READY   AGE
-statefulset.apps/csi-gcs-controller   1/1     4s
+NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR                 AGE
+daemonset.apps/csi-gcs      1         1         1       1            1           kubernetes.io/os=linux        18s
 
 NAME                                         READY   STATUS    RESTARTS   AGE
-pod/csi-gcs-controller-0                     2/2     Running   0          4s
-pod/csi-gcs-node-mbmnc                       2/2     Running   0          4s
+pod/csi-gcs-f9vgd                            4/4     Running   0          18s
 ```
 
 ## Debugging
 
 ```console
-kubectl logs -l app=csi-gcs-controller -c csi-gcs-controller -n kube-system
-kubectl logs -l app=csi-gcs-node -c csi-gcs-node -n kube-system
+kubectl logs -l app=csi-gcs -c csi-gcs -n kube-system
 ```
 
 ## Resource Requests / Limits
@@ -54,7 +49,7 @@ To change the default resource requests & limits, override them using kustomize.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 bases:
-  - github.com/ofek/csi-gcs/deploy/overlays/stable-gke?ref=v0.4.0
+  - github.com/ofek/csi-gcs/deploy/overlays/stable-gke?ref=<STABLE_VERSION>
 patchesStrategicMerge:
   - resources.yaml
 ```
@@ -83,5 +78,5 @@ spec:
 ## Namespace
 
 This driver deploys directly into the `kube-system` namespace. That can't be changed
-since the `DaemonSet` requires `priorityClassName` `system-node-critical` to be
+since the `DaemonSet` requires `priorityClassName: system-node-critical` to be
 prioritized over normal workloads.
