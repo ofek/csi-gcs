@@ -225,19 +225,36 @@ func RegisterMount(volumeID string, targetPath string, node string, podNamespace
 		return err
 	}
 
-	// creates the clientset
+	// creates the clientsets
 	clientset, err := gcs.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+	coreClientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}
 
 	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
 
+	nodeResource, err := coreClientset.CoreV1().Nodes().Get(node, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
 	_, err = clientset.GcsV1beta1().PublishedVolumes().Create(&v1beta1.PublishedVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
 				"gcs.csi.ofek.dev/node": node,
+			},
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion: "v1",
+					Kind:       "Node",
+					Name:       node,
+					UID:        nodeResource.GetUID(),
+				},
 			},
 		},
 		Spec: v1beta1.PublishedVolumeSpec{
