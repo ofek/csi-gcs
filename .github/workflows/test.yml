@@ -75,8 +75,5 @@ jobs:
         echo "$TEST_SECRETS" > test/secret.yaml
 
     - name: Run Tests
-      # TODO: Remove when Sanity Tests are fixed
-      # https://github.com/ofek/csi-gcs/issues/15
-      continue-on-error: true
       run: |
         invoke env -c "invoke test.sanity"
