@@ -11,6 +11,11 @@ spec:
       labels:
         app: csi-gcs
     spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: "Exists"
       hostNetwork: true
       serviceAccount: csi-gcs
       containers:
@@ -36,6 +41,13 @@ spec:
           mountPath: /registration
         - name: socket-dir
           mountPath: /csi
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 20Mi
       - name: csi-provisioner
         image: quay.io/k8scsi/csi-provisioner:v1.6.0
         args:
@@ -68,6 +80,13 @@ spec:
         volumeMounts:
           - name: socket-dir
             mountPath: /var/lib/csi/sockets/pluginproxy/
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 20Mi
       - name: csi-gcs
         securityContext:
           privileged: true
@@ -94,6 +113,13 @@ spec:
           mountPropagation: Bidirectional
         - name: socket-dir
           mountPath: /csi
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 80Mi
       volumes:
       - name: fuse-device
         hostPath:
