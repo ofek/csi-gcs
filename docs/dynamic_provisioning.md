@@ -72,9 +72,9 @@ touch: /data/forbidden.txt: Read-only file system
 To clean up everything, run the following commands
 
 ```console
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/deployment.yaml"
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/pvc.yaml"
-kubectl delete -f "https://github.com/ofek/csi-gcs/blob/master/examples/dynamic/sc.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/deployment.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/pvc.yaml"
+kubectl delete -f "https://github.com/ofek/csi-gcs/blob/<STABLE_VERSION>/examples/dynamic/sc.yaml"
 kubectl delete -k "github.com/ofek/csi-gcs/deploy/overlays/stable?ref=<STABLE_VERSION>"
 kubectl delete secret csi-gcs-secret-creator
 kubectl delete secret csi-gcs-secret-mounter
