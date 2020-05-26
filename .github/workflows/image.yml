@@ -83,7 +83,7 @@ jobs:
 
     - name: Build Docker Container
       run: |
-        invoke image --release --compress
+        invoke image --release
 
     - name: Package Container
       run: |
