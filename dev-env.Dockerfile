@@ -2,7 +2,7 @@ FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
 
 ARG gcsfuse_version
 
-RUN apk add --update --no-cache fuse fuse-dev git upx
+RUN apk add --update --no-cache fuse fuse-dev git
 
 WORKDIR ${GOPATH}
 
@@ -17,7 +17,7 @@ RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsf
 
 FROM golang:1.13.6-alpine3.11
 
-RUN apk add --update --no-cache fuse fuse-dev git upx python3 python3-dev py3-pip bash build-base docker
+RUN apk add --update --no-cache fuse fuse-dev git python3 python3-dev py3-pip bash build-base docker
 
 COPY --from=build-gcsfuse /tmp/gcsfuse/bin/* /usr/local/bin/
 COPY --from=build-gcsfuse /tmp/gcsfuse/sbin/* /sbin/

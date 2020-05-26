@@ -16,34 +16,6 @@ RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
 RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
-FROM golang:1.13.6-alpine3.11 AS compress-gcfsuse
-
-ARG upx_flags
-ENV UPX ${upx_flags}
-
-RUN apk add --update --no-cache upx
-
-COPY --from=build-gcsfuse /tmp/gcsfuse/bin/gcsfuse /tmp/bin/gcsfuse
-
-# Compress the binaries
-RUN if [ "${UPX}" != "" ]; then \
-        upx /tmp/bin/gcsfuse; \
-    fi
-
-FROM golang:1.13.6-alpine3.11 AS compress-csi-gcs
-
-ARG upx_flags
-ENV UPX ${upx_flags}
-
-RUN apk add --update --no-cache upx
-
-COPY bin/driver /tmp/bin/driver
-
-# Compress the binaries
-RUN if [ "${UPX}" != "" ]; then \
-        upx /tmp/bin/driver; \
-    fi
-
 FROM alpine:3.11
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
@@ -66,6 +38,6 @@ WORKDIR /
 ENTRYPOINT ["/usr/local/bin/driver"]
 
 # Copy the binaries
-COPY --from=compress-gcfsuse /tmp/bin/* /usr/local/bin/
+COPY --from=build-gcsfuse /tmp/gcsfuse/bin/* /usr/local/bin/
 COPY --from=build-gcsfuse /tmp/gcsfuse/sbin/* /sbin/
-COPY --from=compress-csi-gcs /tmp/bin/* /usr/local/bin/
+COPY bin/driver /usr/local/bin/
