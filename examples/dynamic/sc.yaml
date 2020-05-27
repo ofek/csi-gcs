@@ -13,3 +13,4 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-namespace: default
   csi.storage.k8s.io/controller-expand-secret-name: csi-gcs-secret-creator
   csi.storage.k8s.io/controller-expand-secret-namespace: default
+  gcs.csi.ofek.dev/project-id: joshmartin-csi-gcs-test
