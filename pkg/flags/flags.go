@@ -11,6 +11,7 @@ import (
 const (
 	FLAG_BUCKET              = "bucket"
 	FLAG_PROJECT_ID          = "projectId"
+	FLAG_KMS_KEY_ID          = "kmsKeyId"
 	FLAG_LOCATION            = "location"
 	FLAG_FUSE_MOUNT_OPTION   = "fuseMountOptions"
 	FLAG_DIR_MODE            = "dirMode"
@@ -28,6 +29,7 @@ const (
 
 	ANNOTATION_BUCKET              = "gcs.csi.ofek.dev/bucket"
 	ANNOTATION_PROJECT_ID          = "gcs.csi.ofek.dev/project-id"
+	ANNOTATION_KMS_KEY_ID          = "gcs.csi.ofek.dev/kms-key-id"
 	ANNOTATION_LOCATION            = "gcs.csi.ofek.dev/location"
 	ANNOTATION_FUSE_MOUNT_OPTION   = "gcs.csi.ofek.dev/fuse-mount-options"
 	ANNOTATION_DIR_MODE            = "gcs.csi.ofek.dev/dir-mode"
@@ -43,6 +45,7 @@ const (
 
 	MOUNT_OPTION_BUCKET              = "bucket"
 	MOUNT_OPTION_PROJECT_ID          = "project-id"
+	MOUNT_OPTION_KMS_KEY_ID          = "kms-key-id"
 	MOUNT_OPTION_LOCATION            = "location"
 	MOUNT_OPTION_FUSE_MOUNT_OPTION   = "fuse-mount-option"
 	MOUNT_OPTION_DIR_MODE            = "dir-mode"
@@ -62,6 +65,8 @@ func IsFlag(flag string) bool {
 	case FLAG_BUCKET:
 		return true
 	case FLAG_PROJECT_ID:
+		return true
+	case FLAG_KMS_KEY_ID:
 		return true
 	case FLAG_LOCATION:
 		return true
@@ -97,6 +102,8 @@ func FlagNameFromAnnotation(annotation string) string {
 		return FLAG_BUCKET
 	case ANNOTATION_PROJECT_ID:
 		return FLAG_PROJECT_ID
+	case ANNOTATION_KMS_KEY_ID:
+		return FLAG_KMS_KEY_ID
 	case ANNOTATION_LOCATION:
 		return FLAG_LOCATION
 	case ANNOTATION_FUSE_MOUNT_OPTION:
@@ -139,6 +146,8 @@ func FlagNameFromMountOption(cmd string) string {
 		return FLAG_BUCKET
 	case MOUNT_OPTION_PROJECT_ID:
 		return FLAG_PROJECT_ID
+	case MOUNT_OPTION_KMS_KEY_ID:
+		return FLAG_KMS_KEY_ID
 	case MOUNT_OPTION_LOCATION:
 		return FLAG_LOCATION
 	case MOUNT_OPTION_FUSE_MOUNT_OPTION:
@@ -245,6 +254,7 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 		args             = flag.NewFlagSet("csi-gcs", flag.ContinueOnError)
 		bucket           string
 		projectId        string
+		kmsKeyId         string
 		location         string
 		fuseMountOptions fuseMountOptions
 		dirMode          octalInt = -1
@@ -261,6 +271,7 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 
 	args.StringVar(&bucket, MOUNT_OPTION_BUCKET, "", "Bucket Name")
 	args.StringVar(&projectId, MOUNT_OPTION_PROJECT_ID, "", "Project ID of Bucket")
+	args.StringVar(&kmsKeyId, MOUNT_OPTION_KMS_KEY_ID, "", "KMS encryption key ID. (projects/my-pet-project/locations/us-east1/keyRings/my-key-ring/cryptoKeys/my-key)")
 	args.StringVar(&location, MOUNT_OPTION_LOCATION, "", "Bucket Location")
 	args.Var(&fuseMountOptions, MOUNT_OPTION_FUSE_MOUNT_OPTION, "")
 	args.Var(&dirMode, MOUNT_OPTION_DIR_MODE, "Permission bits for directories, in octal. (default: 0775)")
@@ -287,6 +298,10 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 
 	if projectId != "" {
 		result[FLAG_PROJECT_ID] = projectId
+	}
+
+	if location != "" {
+		result[FLAG_KMS_KEY_ID] = kmsKeyId
 	}
 
 	if location != "" {

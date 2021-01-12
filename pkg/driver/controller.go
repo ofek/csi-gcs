@@ -4,18 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/storage"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
-	"k8s.io/klog"
-
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"cloud.google.com/go/storage"
-
-	"google.golang.org/api/option"
+	"k8s.io/klog"
 )
 
 func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
@@ -39,6 +36,7 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	var options = map[string]string{
 		"bucket":   util.BucketName(req.Name),
 		"location": "US",
+		"kmsKeyId": "",
 	}
 
 	// Merge Secret Options
@@ -97,8 +95,8 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 		if !projectIdExists {
 			return nil, status.Errorf(codes.InvalidArgument, "Project Id not provided, bucket can't be created: %s", options[flags.FLAG_BUCKET])
 		}
-
-		if err := bucket.Create(ctx, projectId, &storage.BucketAttrs{Location: options[flags.FLAG_LOCATION]}); err != nil {
+		if err := bucket.Create(ctx, projectId, &storage.BucketAttrs{Location: options[flags.FLAG_LOCATION],
+			Encryption: &storage.BucketEncryption{DefaultKMSKeyName: options[flags.FLAG_KMS_KEY_ID]}}); err != nil {
 			return nil, status.Errorf(codes.Internal, "Failed to create bucket: %v", err)
 		}
 	}

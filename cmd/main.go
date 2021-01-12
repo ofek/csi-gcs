@@ -6,9 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"k8s.io/klog"
-
 	"github.com/ofek/csi-gcs/pkg/driver"
+	"k8s.io/klog"
 )
 
 var (
