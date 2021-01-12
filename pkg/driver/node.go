@@ -10,14 +10,13 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
+	"github.com/ofek/csi-gcs/pkg/flags"
+	"github.com/ofek/csi-gcs/pkg/util"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 	"k8s.io/utils/mount"
-
-	"github.com/ofek/csi-gcs/pkg/flags"
-	"github.com/ofek/csi-gcs/pkg/util"
 )
 
 func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {

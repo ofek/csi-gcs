@@ -33,6 +33,11 @@ NAME                                         READY   STATUS    RESTARTS   AGE
 pod/csi-gcs-f9vgd                            4/4     Running   0          18s
 ```
 
+## Customer-managed encryption keys (CMEK)
+
+`kmsKeyId`/`kms-key-id` parameter definition as part of secret or annotation enables CMEK encryption for Google buckets.
+
+
 ## Debugging
 
 ```console
