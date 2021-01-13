@@ -300,6 +300,10 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 		result[FLAG_PROJECT_ID] = projectId
 	}
 
+	if kmsKeyId != "" {
+		result[FLAG_KMS_KEY_ID] = kmsKeyId
+	}
+
 	if location != "" {
 		result[FLAG_KMS_KEY_ID] = kmsKeyId
 	}

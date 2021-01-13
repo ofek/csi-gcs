@@ -35,7 +35,10 @@ pod/csi-gcs-f9vgd                            4/4     Running   0          18s
 
 ## Customer-managed encryption keys (CMEK)
 
-`kmsKeyId`/`kms-key-id` parameter definition as part of secret or annotation enables CMEK encryption for Google buckets.
+Make sure that your Google Cloud Storage service account has `roles/cloudkms.cryptoKeyEncrypterDecrypter` for the target encryption key.
+
+`kmsKeyId`/`gcs.csi.ofek.dev/kms-key-id` could be defined as part of a secret or annotation/mount to enable [CMEK encryption for Google Storage](https://cloud.google.com/storage/docs/gsutil/addlhelp/UsingEncryptionKeys).
+
 
 
 ## Debugging
