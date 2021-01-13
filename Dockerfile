@@ -1,4 +1,4 @@
-FROM golang:1.13.6-alpine3.11 AS build-gcsfuse
+FROM golang:1.15.6-alpine3.12 AS build-gcsfuse
 
 ARG gcsfuse_version
 ARG global_ldflags
@@ -16,7 +16,7 @@ RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
 RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
-FROM alpine:3.11
+FROM alpine:3.12
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL "org.opencontainers.image.authors"="Ofek Lev <ofekmeister@gmail.com>"

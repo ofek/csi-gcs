@@ -110,6 +110,7 @@ parameters:
 | `csi.storage.k8s.io/controller-expand-secret-namespace` | The namespace of the secret allowed to expand [bucket capacity](csi_compatibility.md#capacity) |
 | `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
 | `gcs.csi.ofek.dev/location` | The [location][gcs-location] to create buckets at (default `US` multi-region) |
+| `gcs.csi.ofek.dev/kms-key-id` | (optional) KMS encryption key ID. (projects/my-pet-project/locations/us-east1/keyRings/my-key-ring/cryptoKeys/my-key)|
 
 ### Persistent Volume Claim Parameters
 
@@ -126,6 +127,7 @@ metadata:
 | `gcs.csi.ofek.dev/project-id` | The project to create the buckets in. If not specified, `projectId` will be looked up in the provisioner's secret |
 | `gcs.csi.ofek.dev/location` | The [location][gcs-location] to create buckets at (default `US` multi-region) |
 | `gcs.csi.ofek.dev/bucket` | The name for the new bucket |
+| `gcs.csi.ofek.dev/kms-key-id` | (optional) KMS encryption key ID. (projects/my-pet-project/locations/us-east1/keyRings/my-key-ring/cryptoKeys/my-key)|
 
 ### Persistent buckets
 
