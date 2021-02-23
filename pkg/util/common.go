@@ -121,7 +121,6 @@ func BucketName(volumeId string) string {
 	if len(volumeId) > 48 {
 		volumeId = volumeId[0:48]
 	}
-
 	return fmt.Sprintf("%s-%x", strings.ToLower(volumeId), crc32Hash)
 }
 
