@@ -24,6 +24,7 @@ const (
 	FLAG_LIMIT_OPS_PER_SEC   = "limitOpsPerSec"
 	FLAG_STAT_CACHE_TTL      = "statCacheTTL"
 	FLAG_TYPE_CACHE_TTL      = "typeCacheTTL"
+	FLAG_MAX_RETRY_SLEEP     = "maxRetrySleep"
 
 	ANNOTATION_PREFIX = "gcs.csi.ofek.dev/"
 
@@ -42,6 +43,7 @@ const (
 	ANNOTATION_LIMIT_OPS_PER_SEC   = "gcs.csi.ofek.dev/limit-ops-per-sec"
 	ANNOTATION_STAT_CACHE_TTL      = "gcs.csi.ofek.dev/stat-cache-ttl"
 	ANNOTATION_TYPE_CACHE_TTL      = "gcs.csi.ofek.dev/type-cache-ttl"
+	ANNOTATION_MAX_RETRY_SLEEP     = "gcs.csi.ofek.dev/max-retry-sleep"
 
 	MOUNT_OPTION_BUCKET              = "bucket"
 	MOUNT_OPTION_PROJECT_ID          = "project-id"
@@ -58,6 +60,7 @@ const (
 	MOUNT_OPTION_LIMIT_OPS_PER_SEC   = "limit-ops-per-sec"
 	MOUNT_OPTION_STAT_CACHE_TTL      = "stat-cache-ttl"
 	MOUNT_OPTION_TYPE_CACHE_TTL      = "type-cache-ttl"
+	MOUNT_OPTION_MAX_RETRY_SLEEP     = "max-retry-sleep"
 )
 
 func IsFlag(flag string) bool {
@@ -91,6 +94,8 @@ func IsFlag(flag string) bool {
 	case FLAG_STAT_CACHE_TTL:
 		return true
 	case FLAG_TYPE_CACHE_TTL:
+		return true
+	case FLAG_MAX_RETRY_SLEEP:
 		return true
 	}
 	return false
@@ -128,6 +133,8 @@ func FlagNameFromAnnotation(annotation string) string {
 		return FLAG_STAT_CACHE_TTL
 	case ANNOTATION_TYPE_CACHE_TTL:
 		return FLAG_TYPE_CACHE_TTL
+	case ANNOTATION_MAX_RETRY_SLEEP:
+		return FLAG_MAX_RETRY_SLEEP
 	}
 	return ""
 }
@@ -172,6 +179,8 @@ func FlagNameFromMountOption(cmd string) string {
 		return FLAG_STAT_CACHE_TTL
 	case MOUNT_OPTION_TYPE_CACHE_TTL:
 		return FLAG_TYPE_CACHE_TTL
+	case MOUNT_OPTION_MAX_RETRY_SLEEP:
+		return FLAG_MAX_RETRY_SLEEP
 	}
 	return ""
 }
@@ -267,6 +276,7 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 		limitOpsPerSec   int64
 		statCacheTTL     string
 		typeCacheTTL     string
+		maxRetrySleepMin int64
 	)
 
 	args.StringVar(&bucket, MOUNT_OPTION_BUCKET, "", "Bucket Name")
@@ -284,6 +294,7 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 	args.Int64Var(&limitOpsPerSec, MOUNT_OPTION_LIMIT_OPS_PER_SEC, -1, "Operations per second limit, measured over a 30-second window.")
 	args.StringVar(&statCacheTTL, MOUNT_OPTION_STAT_CACHE_TTL, "", "How long to cache StatObject results and inode attributes.")
 	args.StringVar(&typeCacheTTL, MOUNT_OPTION_TYPE_CACHE_TTL, "", "How long to cache name -> file/dir mappings in directory inodes.")
+	args.Int64Var(&maxRetrySleepMin, MOUNT_OPTION_MAX_RETRY_SLEEP, -1, "The maximum duration allowed to sleep in a retry loop with exponential backoff for failed requests to GCS backend. Once the backoff duration exceeds this limit, the retry stops. The default is 1 minute. A value of 0 disables retries.")
 
 	err := args.Parse(b)
 	if err != nil {
@@ -301,10 +312,6 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 	}
 
 	if kmsKeyId != "" {
-		result[FLAG_KMS_KEY_ID] = kmsKeyId
-	}
-
-	if location != "" {
 		result[FLAG_KMS_KEY_ID] = kmsKeyId
 	}
 
@@ -356,6 +363,10 @@ func MergeMountOptions(a map[string]string, b []string) (result map[string]strin
 		result[FLAG_TYPE_CACHE_TTL] = typeCacheTTL
 	}
 
+	if maxRetrySleepMin != -1 {
+		result[FLAG_MAX_RETRY_SLEEP] = strconv.FormatInt(maxRetrySleepMin, 10)
+	}
+
 	return result
 }
 
@@ -381,6 +392,8 @@ func FlagNameToGcsfuseOption(flag string) string {
 		return "stat_cache_ttl"
 	case FLAG_TYPE_CACHE_TTL:
 		return "type_cache_ttl"
+	case FLAG_MAX_RETRY_SLEEP:
+		return "max_retry_sleep"
 	}
 	return ""
 }
@@ -425,6 +438,7 @@ func ExtraFlags(flags map[string]string) (result []string) {
 	result = MaybeAddFlag(result, flags, FLAG_LIMIT_OPS_PER_SEC)
 	result = MaybeAddFlag(result, flags, FLAG_STAT_CACHE_TTL)
 	result = MaybeAddFlag(result, flags, FLAG_TYPE_CACHE_TTL)
+	result = MaybeAddFlag(result, flags, FLAG_MAX_RETRY_SLEEP)
 
 	return result
 }
