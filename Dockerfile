@@ -25,7 +25,7 @@ LABEL "org.opencontainers.image.licenses"="Apache-2.0 OR MIT"
 LABEL "org.opencontainers.image.source"="https://github.com/ofek/csi-gcs"
 LABEL "org.opencontainers.image.title"="csi-gcs"
 
-RUN apk add --update --no-cache ca-certificates fuse && rm -rf /tmp/*
+RUN apk add --update --no-cache ca-certificates fuse tini && rm -rf /tmp/*
 
 # Allow non-root users to specify the allow_other or allow_root mount options
 RUN echo "user_allow_other" > /etc/fuse.conf
@@ -35,7 +35,7 @@ RUN mkdir -p /var/lib/kubelet/pods /tmp/keys
 
 WORKDIR /
 
-ENTRYPOINT ["/usr/local/bin/driver"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/driver"]
 
 # Copy the binaries
 COPY --from=build-gcsfuse /tmp/gcsfuse/bin/* /usr/local/bin/
