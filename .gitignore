@@ -29,3 +29,6 @@ __pycache__
 # Artifacts
 /bin/*
 !/bin/.gitkeep
+
+# python env
+.venv/

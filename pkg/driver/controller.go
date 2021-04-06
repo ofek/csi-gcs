@@ -9,6 +9,7 @@ import (
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -68,15 +69,26 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 		options = flags.MergeAnnotations(options, req.Parameters)
 	}
 
-	// Retrieve Key Secret
-	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
-	if err != nil {
-		return nil, err
+	var clientOpt option.ClientOption
+	if len(req.Secrets) == 0 {
+		// Find default credentials
+		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentials(creds)
+	} else {
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentialsFile(keyFile)
+		defer util.CleanupKey(keyFile, KeyStoragePath)
 	}
-	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	// Creates a client.
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	client, err := storage.NewClient(ctx, clientOpt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
 	}
@@ -139,14 +151,26 @@ func (d *GCSDriver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeReque
 		return nil, status.Error(codes.InvalidArgument, "missing volume id")
 	}
 
-	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
-	if err != nil {
-		return nil, err
+	var clientOpt option.ClientOption
+	if len(req.Secrets) == 0 {
+		// Find default credentials
+		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentials(creds)
+	} else {
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentialsFile(keyFile)
+		defer util.CleanupKey(keyFile, KeyStoragePath)
 	}
-	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	// Creates a client.
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	client, err := storage.NewClient(ctx, clientOpt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
 	}
@@ -201,14 +225,26 @@ func (d *GCSDriver) ValidateVolumeCapabilities(ctx context.Context, req *csi.Val
 
 	bucketName := req.VolumeId
 
-	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
-	if err != nil {
-		return nil, err
+	var clientOpt option.ClientOption
+	if len(req.Secrets) == 0 {
+		// Find default credentials
+		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentials(creds)
+	} else {
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentialsFile(keyFile)
+		defer util.CleanupKey(keyFile, KeyStoragePath)
 	}
-	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	// Creates a client.
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	client, err := storage.NewClient(ctx, clientOpt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
 	}
@@ -288,15 +324,26 @@ func (d *GCSDriver) ControllerExpandVolume(ctx context.Context, req *csi.Control
 		return nil, status.Error(codes.InvalidArgument, "missing volume id")
 	}
 
-	// Retrieve Key Secret
-	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
-	if err != nil {
-		return nil, err
+	var clientOpt option.ClientOption
+	if len(req.Secrets) == 0 {
+		// Find default credentials
+		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentials(creds)
+	} else {
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentialsFile(keyFile)
+		defer util.CleanupKey(keyFile, KeyStoragePath)
 	}
-	defer util.CleanupKey(keyFile, KeyStoragePath)
 
 	// Creates a client.
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	client, err := storage.NewClient(ctx, clientOpt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
 	}

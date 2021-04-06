@@ -12,6 +12,7 @@ import (
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 	"github.com/ofek/csi-gcs/pkg/flags"
 	"github.com/ofek/csi-gcs/pkg/util"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -57,14 +58,25 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		options = flags.MergeFlags(options, req.VolumeContext)
 	}
 
-	// Retrieve Secret Key
-	keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
-	if err != nil {
-		return nil, err
+	var clientOpt option.ClientOption
+	if len(req.Secrets) == 0 {
+		// Find default credentials
+		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentials(creds)
+	} else {
+		// Retrieve Secret Key
+		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		clientOpt = option.WithCredentialsFile(keyFile)
 	}
 
 	// Creates a client.
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(keyFile))
+	client, err := storage.NewClient(ctx, clientOpt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to create client: %v", err)
 	}
