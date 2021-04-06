@@ -59,6 +59,7 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 	}
 
 	var clientOpt option.ClientOption
+	keyFile := ""
 	if len(req.Secrets) == 0 {
 		// Find default credentials
 		creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
@@ -68,7 +69,8 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		clientOpt = option.WithCredentials(creds)
 	} else {
 		// Retrieve Secret Key
-		keyFile, err := util.GetKey(req.Secrets, KeyStoragePath)
+		var err error
+		keyFile, err = util.GetKey(req.Secrets, KeyStoragePath)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +110,10 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
-	mountOptions := []string{fmt.Sprintf("key_file=%s", keyFile), "allow_other"}
+	mountOptions := []string{"allow_other"}
+	if keyFile != "" {
+		mountOptions = append(mountOptions, fmt.Sprintf("key_file=%s", keyFile))
+	}
 	mountOptions = append(mountOptions, flags.ExtraFlags(options)...)
 	if req.GetReadonly() {
 		mountOptions = append(mountOptions, "ro")
