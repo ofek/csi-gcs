@@ -21,6 +21,7 @@ __pycache__
 
 # Python environments
 /.tox
+.venv/
 
 # Test Service Account
 /service-account.json
@@ -30,5 +31,5 @@ __pycache__
 /bin/*
 !/bin/.gitkeep
 
-# python env
-.venv/
+# go vendor
+vendor/
