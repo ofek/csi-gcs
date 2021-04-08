@@ -84,8 +84,8 @@ See the CSI section of the [Kubernetes Volume docs][k8s-volume-csi].
 The contents of the JSON key may be passed in as a secret defined in
 `PersistentVolume.spec.csi.nodePublishSecretRef`. The name of the key in the secret is `key`.
 
-> You also can just delete the secret definition, the code will automatically fine the service account key follow some order.
-> Refer: https://pkg.go.dev/golang.org/x/oauth2/google#FindDefaultCredentials
+!!! tip
+    You may omit the secret definition and let the code automatically detect the service account key using [standard heuristics][key-locator-heuristics].
 
 ### Bucket
 
