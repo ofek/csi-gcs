@@ -112,6 +112,9 @@ parameters: ...
 | `gcs.csi.ofek.dev/kms-key-id`                           | (optional) KMS encryption key ID. (projects/my-pet-project/locations/us-east1/keyRings/my-key-ring/cryptoKeys/my-key)                                                                                                                     |
 | `gcs.csi.ofek.dev/max-retry-sleep`                      | The maximum duration allowed to sleep in a retry loop with exponential backoff for failed requests to GCS backend. Once the backoff duration exceeds this limit, the retry stops. The default is 1 minute. A value of 0 disables retries. |
 
+!!! tip
+    You may omit the secret definition and let the code automatically detect the service account key using [standard heuristics][key-locator-heuristics].
+
 ### Persistent Volume Claim Parameters
 
 ```yaml
