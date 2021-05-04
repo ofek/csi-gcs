@@ -40,7 +40,7 @@ func NewGCSDriver(name, node, endpoint string, version string, deleteOrphanedPod
 func (d *GCSDriver) Run() error {
 	// set the driver-ready label to false at the beginning to handle edge-case where the controller didn't terminated gracefully
 	if err := util.SetDriverReadyLabel(d.nodeName, false); err != nil {
-		klog.V(4).Infof("Unable to set driver-ready=false label on the node, error: %v", err)
+		klog.Warningf("Unable to set driver-ready=false label on the node, error: %v", err)
 	}
 
 	if len(d.mountPoint) == 0 {
@@ -81,7 +81,7 @@ func (d *GCSDriver) Run() error {
 	csi.RegisterNodeServer(d.server, d)
 	csi.RegisterControllerServer(d.server, d)
 	if err = util.SetDriverReadyLabel(d.nodeName, true); err != nil {
-		klog.V(4).Infof("unable to set driver-ready=true label on the node, error: %v", err)
+		klog.Warningf("unable to set driver-ready=true label on the node, error: %v", err)
 	}
 	return d.server.Serve(listener)
 }
@@ -89,7 +89,7 @@ func (d *GCSDriver) Run() error {
 func (d *GCSDriver) stop() {
 	d.server.Stop()
 	if err := util.SetDriverReadyLabel(d.nodeName, false); err != nil {
-		klog.V(4).Infof("Unable to set driver-ready=false label on the node, error: %v", err)
+		klog.Warningf("Unable to set driver-ready=false label on the node, error: %v", err)
 	}
 	klog.V(1).Info("CSI driver stopped")
 }
