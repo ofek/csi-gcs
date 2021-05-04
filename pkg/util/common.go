@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
 	"io/ioutil"
@@ -20,6 +21,7 @@ import (
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
@@ -183,6 +185,38 @@ func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[str
 	}
 
 	return pvc.ObjectMeta.Annotations, nil
+}
+
+// SetDriverReadyLabel set the label gcs.csi.ofek.dev/driver-ready=<isReady> on the given node.
+func SetDriverReadyLabel(nodeName string, isReady bool) (err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return err
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	patch := []struct {
+		Op    string `json:"op"`
+		Path  string `json:"path"`
+		Value string `json:"value"`
+	}{{
+		Op:    "replace",
+		Path:  "/metadata/labels/gcs.csi.ofek.dev~1driver-ready",
+		Value: strconv.FormatBool(isReady),
+	}}
+	patchBytes, err := json.Marshal(patch)
+	if err != nil {
+		return err
+	}
+	
+	_, err = clientset.CoreV1().Nodes().Patch(nodeName, types.JSONPatchType, patchBytes)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func DeletePod(namespace string, name string) (err error) {

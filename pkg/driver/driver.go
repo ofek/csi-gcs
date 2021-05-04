@@ -38,6 +38,11 @@ func NewGCSDriver(name, node, endpoint string, version string, deleteOrphanedPod
 }
 
 func (d *GCSDriver) Run() error {
+	// set the driver-ready label to false at the beginning to handle edge-case where the controller didn't terminated gracefully
+	if err := util.SetDriverReadyLabel(d.nodeName, false); err != nil {
+		klog.V(4).Infof("Unable to set driver-ready=false label on the node, error: %v", err)
+	}
+
 	if len(d.mountPoint) == 0 {
 		return errors.New("--bucket-mount-path is required")
 	}
@@ -75,11 +80,17 @@ func (d *GCSDriver) Run() error {
 	csi.RegisterIdentityServer(d.server, d)
 	csi.RegisterNodeServer(d.server, d)
 	csi.RegisterControllerServer(d.server, d)
+	if err = util.SetDriverReadyLabel(d.nodeName, true); err != nil {
+		klog.V(4).Infof("unable to set driver-ready=true label on the node, error: %v", err)
+	}
 	return d.server.Serve(listener)
 }
 
 func (d *GCSDriver) stop() {
 	d.server.Stop()
+	if err := util.SetDriverReadyLabel(d.nodeName, false); err != nil {
+		klog.V(4).Infof("Unable to set driver-ready=false label on the node, error: %v", err)
+	}
 	klog.V(1).Info("CSI driver stopped")
 }
 
@@ -93,7 +104,7 @@ func (d *GCSDriver) RunPodCleanup() (err error) {
 		// Killing Pod because its Volume is no longer mounted
 		err = util.DeletePod(publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
 		if err == nil {
-			klog.V(4).Infof("Deleted Pod %s/%s bacause its volume was no longer mounted", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
+			klog.V(4).Infof("Deleted Pod %s/%s because its volume was no longer mounted", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
 		} else {
 			klog.Errorf("Could not delete pod %s/%s because it was no longer mounted because of error: %v", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name, err)
 		}

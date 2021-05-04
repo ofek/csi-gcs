@@ -16,7 +16,7 @@ rules:
   verbs: ["delete"]
 - apiGroups: [""]
   resources: ["nodes"]
-  verbs: ["get", "list", "update"]
+  verbs: ["get", "list", "update", "patch"]
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["get", "list"]
