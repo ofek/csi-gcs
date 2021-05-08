@@ -26,11 +26,13 @@ theme:
   favicon: assets/images/favicon.ico
 
 nav:
-  - Home: index.md
-  - Getting started: getting_started.md
-  - Static provisioning: static_provisioning.md
-  - Dynamic provisioning: dynamic_provisioning.md
-  - CSI Compatibility: csi_compatibility.md
+  - Home:
+    - About: index.md
+    - Getting started: getting_started.md
+    - Static provisioning: static_provisioning.md
+    - Dynamic provisioning: dynamic_provisioning.md
+    - CSI Compatibility: csi_compatibility.md
+    - Troubleshooting: troubleshooting.md
   - Contributing:
     - Setup: contributing/setup.md
     - Authors: contributing/authors.md
