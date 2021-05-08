@@ -11,7 +11,7 @@ Those warnings are temporary and reflect the csi-gcs driver is still starting. K
 
 It's possible to avoid those warnings by adding a node selector or affinity using the node label `gcs.csi.ofek.dev/driver-ready=true`.
 
-> Adding such node selector or affinity will trade the time spend waiting for volume mounting retries against time waiting for scheduling.
+> Adding such node selector or affinity will trade the time spend waiting for volume mounting retries with time waiting for scheduling.
 
 
 ```
