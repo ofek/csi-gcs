@@ -13,6 +13,7 @@ It's possible to avoid those warnings by adding a node selector or affinity usin
 
 > Adding such node selector or affinity will trade the time spend waiting for volume mounting retries with time waiting for scheduling.
 
+> The exact label added is `<driver name>/driver-ready`, by default `<driver name>` is `gcs.csi.ofek.dev`
 
 ```
 apiVersion: v1

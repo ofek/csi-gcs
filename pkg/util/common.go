@@ -187,8 +187,18 @@ func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[str
 	return pvc.ObjectMeta.Annotations, nil
 }
 
-// SetDriverReadyLabel set the label gcs.csi.ofek.dev/driver-ready=<isReady> on the given node.
-func SetDriverReadyLabel(nodeName string, isReady bool) (err error) {
+// DriverReadyLabel returns the driver-ready label according to the driver name.
+func DriverReadyLabel(driverName string) string {
+	return driverName + "/driver-ready"
+}
+
+// DriverReadyLabelJSONPatchEscaped returns the driver-ready label according to the driver name but espcaed to be used in a JSONPatch path.
+func DriverReadyLabelJSONPatchEscaped(driverName string) string {
+	return strings.ReplaceAll(DriverReadyLabel(driverName), "/", "~1")
+}
+
+// SetDriverReadyLabel set the label <driver name>/driver-ready=<isReady> on the given node.
+func SetDriverReadyLabel(driverName string, nodeName string, isReady bool) (err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -204,14 +214,14 @@ func SetDriverReadyLabel(nodeName string, isReady bool) (err error) {
 		Value string `json:"value"`
 	}{{
 		Op:    "add",
-		Path:  "/metadata/labels/gcs.csi.ofek.dev~1driver-ready",
+		Path:  "/metadata/labels/" + DriverReadyLabelJSONPatchEscaped(driverName),
 		Value: strconv.FormatBool(isReady),
 	}}
 	patchBytes, err := json.Marshal(patch)
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = clientset.CoreV1().Nodes().Patch(nodeName, types.JSONPatchType, patchBytes)
 	if err != nil {
 		return err
