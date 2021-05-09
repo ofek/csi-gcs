@@ -203,7 +203,7 @@ func SetDriverReadyLabel(nodeName string, isReady bool) (err error) {
 		Path  string `json:"path"`
 		Value string `json:"value"`
 	}{{
-		Op:    "replace",
+		Op:    "add",
 		Path:  "/metadata/labels/gcs.csi.ofek.dev~1driver-ready",
 		Value: strconv.FormatBool(isReady),
 	}}
