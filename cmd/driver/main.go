@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/ofek/csi-gcs/pkg/driver"
+	"github.com/ofek/csi-gcs/pkg/util"
 	"k8s.io/klog"
 )
 
@@ -22,7 +22,7 @@ var (
 func main() {
 	_ = flag.Set("alsologtostderr", "true")
 	klog.InitFlags(nil)
-	setEnvVarFlags()
+	util.SetEnvVarFlags()
 	flag.Parse()
 
 	if *versionFlag {
@@ -45,30 +45,4 @@ func main() {
 		klog.Error(err.Error())
 		os.Exit(1)
 	}
-}
-
-func setEnvVarFlags() {
-	flagset := flag.CommandLine
-
-	// I wish Golang had sets
-	set := map[string]string{}
-
-	// https://golang.org/pkg/flag/#FlagSet.Visit
-	flagset.Visit(func(f *flag.Flag) {
-		set[f.Name] = ""
-	})
-
-	// https://golang.org/pkg/flag/#FlagSet.VisitAll
-	flagset.VisitAll(func(f *flag.Flag) {
-		envVar := strings.Replace(strings.ToUpper(f.Name), "-", "_", -1)
-
-		if val := os.Getenv(envVar); val != "" {
-			if _, defined := set[f.Name]; !defined {
-				_ = flagset.Set(f.Name, val)
-			}
-		}
-
-		// Display it in the help text too
-		f.Usage = fmt.Sprintf("%s [%s]", f.Usage, envVar)
-	})
 }
