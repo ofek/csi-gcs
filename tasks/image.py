@@ -5,7 +5,7 @@ from .utils import image_name, image_tags
 
 @task(
     help={
-        'release': 'Build a release image',
+        'release': 'Build a driver release image',
         'gcsfuse': f'The version or commit hash of gcsfuse (default: {GCSFUSE_VERSION})',
     },
     default=True,

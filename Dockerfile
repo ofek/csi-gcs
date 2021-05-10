@@ -14,7 +14,9 @@ RUN mkdir /tmp/bin
 RUN go get -u github.com/googlecloudplatform/gcsfuse && cd ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse && git checkout "v${gcsfuse_version}"
 RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
-RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
+RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} \
+  -ldflags "all=${global_ldflags}" \
+  -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
 FROM alpine:3.12
 
