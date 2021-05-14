@@ -5,8 +5,8 @@ configurations:
   - kustomizeconfig.yaml
 
 resources:
-# - ../../base
-- ../../webhook # comment to disable webhook
+ - ../../base
+ - ../../webhook # comment to disable webhook
 
 images:
 - name: docker.io/ofekmeister/csi-gcs
@@ -16,6 +16,10 @@ images:
 
 namespace: kube-system
 
+replicas:
+  - name: csi-gcs-webhook-server
+    count: 1
+
 patchesStrategicMerge:
 #- uselocalimage.yaml
 - webhook-uselocalimage.yaml # comment to disable webhook
@@ -23,13 +27,13 @@ patchesStrategicMerge:
 - webhook-cert-client.yaml # comment to disable webhook
 - webhook-verbose.yaml # comment to disable webhook
 
-# requires the run 'invoke tls-cert'
+# run 'invoke tls-cert' to generate the tls.crt and tls.key
 secretGenerator:
   - name: csi-gcs-webhook
     files:
       - tls.crt=secrets/tls.crt
       - tls.key=secrets/tls.key
-      - ca=secrets/tls.crt
+      - ca=secrets/tls.crt # shouldn't be needed see WEBHOOK_CA_BUNDLE fieldref
     type: "kubernetes.io/tls"
 
 vars:

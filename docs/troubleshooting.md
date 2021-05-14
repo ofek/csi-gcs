@@ -47,4 +47,4 @@ spec:
             - "true"
 ```
 
-You can also add an admission mutating webhook to automatically inject such node selector or affinity in all pods mounting `csi-gcs` volumes.
+This can be automated by using the provided [mutating webhook](webhook.md) to inject the node selector or affinity in all pods mounting `csi-gcs` volumes.

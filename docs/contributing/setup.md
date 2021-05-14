@@ -26,6 +26,8 @@
     - `kubectl create secret generic csi-gcs-secret --from-file=key=service-account.json`
 * Pull Needed Images
     - `docker pull quay.io/k8scsi/csi-node-driver-registrar:v1.2.0`
+* Generate the TLS certificate for the mutating webhook (can be skipped if you disable the mutating webhook)
+    - `invoke tls-cert`
 * Apply config `kubectl apply -k deploy/overlays/dev`
 
 ## Rebuild & Test Manually in Minikube
