@@ -13,8 +13,9 @@ theme:
   name: material
   language: en
   features:
-    - tabs
+    - navigation.tabs
   palette:
+    scheme: slate
     primary: blue
     accent: blue
   font:
