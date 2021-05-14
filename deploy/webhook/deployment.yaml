@@ -27,8 +27,12 @@ spec:
       containers:
         - image: csi-gcs-webhook-server:latest
           args:
-            - '-v=5'
+            - '-v=3'
           name: server
+          ports:
+            - containerPort: 9443
+              name: webhook-server
+              protocol: TCP
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
