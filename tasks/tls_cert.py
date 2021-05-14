@@ -8,10 +8,13 @@ from invoke import task
     default=True,
 )
 def build(ctx, namespace="kube-system", service="csi-gcs-webhook-server", output="deploy/overlays/dev/secrets"):
+    domain_name = f'{service}.{namespace}.svc'
     ctx.run(
-      f'openssl req '
-      f'-new -newkey rsa:2048 -days 365 -nodes -x509 '
-      f'-subj "/CN={service}.{namespace}.svc" '
+      'openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 '
+      f'-subj "/CN={domain_name}" '
+      '-reqexts SAN '
+      '-extensions SAN '
+      f'-config <(cat /etc/ssl/openssl.cnf <(echo "\n[ SAN ]\nsubjectAltName=DNS:{domain_name}")) '
       f'-keyout {output}/tls.key -out {output}/tls.crt',
       echo=True
     )

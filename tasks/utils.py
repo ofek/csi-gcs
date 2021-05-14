@@ -48,7 +48,7 @@ def image_name(version=False):
 def image_name_webhook_server(version=False):
     if not version:
         version = get_version()
-    return f'{DRIVER_NAME}-wbk-server:{version}'
+    return f'{DRIVER_NAME}-webhook-server:{version}'
 
 def image_tags():
     last_tag = subprocess.run(['git', 'describe', '--tags', '--match=v*', '--abbrev=0'], stdout=subprocess.PIPE, cwd=get_root())
