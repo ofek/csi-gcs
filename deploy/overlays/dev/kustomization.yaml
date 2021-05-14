@@ -21,7 +21,7 @@ replicas:
     count: 1
 
 patchesStrategicMerge:
-#- uselocalimage.yaml
+- uselocalimage.yaml
 - webhook-uselocalimage.yaml # comment to disable webhook
 - webhook-cert-server.yaml # comment to disable webhook
 - webhook-cert-client.yaml # comment to disable webhook
