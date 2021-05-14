@@ -8,7 +8,8 @@ This generates warnings events that:
 To minimize the problem, the mutating webhook inject the node selector `<driver name>/driver-ready="true"` when needed.  
 Preventing pods to schedule on nodes where csi-gcs drivers aren't ready.  
 
-> By default `<driver name>` is `gcs.csi.ofek.dev`
+!!! info
+    The default `<driver name>` is `gcs.csi.ofek.dev`.
 
 ## When is the node selector injected?
 The node selector is only injected if
