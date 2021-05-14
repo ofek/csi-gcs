@@ -84,26 +84,36 @@ func (h *handler) handleInjectDriverReadySelector(w http.ResponseWriter, r *http
 
 	pod := corev1.Pod{}
 	err = json.Unmarshal(admrev.Request.Object.Raw, &pod)
+	klog.V(6).Infof("Received '%s'", string(admrev.Request.Object.Raw))
 	if err != nil {
 		http.Error(w, "unable to decode request object, expected v1/Pod: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	// The namespace need to be populated from the AdmissionReview Request info
+	// as the pod doesn't necessarily has a namespace yet.
+	pod.Namespace = admrev.Request.Namespace
 
-	admresp := &admissionv1.AdmissionResponse{
+	admresp := admissionv1.AdmissionResponse{
 		UID:     admrev.Request.UID,
 		Allowed: true,
 	}
-	if !podHasDriverReadyLabelSelectorOrAffinity(&pod, h.driverReadyLabel) &&
-		podHasCsiGCSVolume(&pod, h.driverName, h.k8sClient.CoreV1()) {
-		klog.V(5).Infof("Mutating pod %s/%s", pod.Namespace, pod.Name)
-		patchType := admissionv1.PatchTypeJSONPatch
-		admresp.PatchType = &patchType
-		admresp.Patch = h.driverReadySelectorPodPatch
-	} else {
+	if podHasDriverReadyLabelSelectorOrAffinity(&pod, h.driverReadyLabel) {
 		klog.V(5).Infof("Skipping pod %s/%s already has driver ready preference", pod.Namespace, pod.Name)
+	} else {
+		if podHasCsiGCSVolume(&pod, h.driverName, h.k8sClient.CoreV1()) {
+			klog.V(5).Infof("Mutating pod %s/%s", pod.Namespace, pod.Name)
+			patchType := admissionv1.PatchTypeJSONPatch
+			admresp.PatchType = &patchType
+			admresp.Patch = h.driverReadySelectorPodPatch
+		} else {
+			klog.V(5).Infof("Skipping pod %s/%s doesn't has csi-gcs volume", pod.Namespace, pod.Name)
+		}
 	}
 
-	jsonOKResponse(w, admresp)
+	jsonOKResponse(w, &admissionv1.AdmissionReview{
+		TypeMeta: admrev.TypeMeta,
+		Response: &admresp,
+	})
 	return
 }
 
@@ -113,6 +123,7 @@ func jsonOKResponse(w http.ResponseWriter, rsp interface{}) {
 		http.Error(w, "unable to encode response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	klog.V(6).Infof("Answering '%s'", string(bts))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(bts)

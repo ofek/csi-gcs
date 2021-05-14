@@ -25,7 +25,6 @@ var (
 )
 
 func main() {
-	_ = flag.Set("alsologtostderr", "true")
 	klog.InitFlags(nil)
 	util.SetEnvVarFlags()
 	flag.Parse()
