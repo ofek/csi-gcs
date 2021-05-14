@@ -9,6 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog"
 )
 
 type handler struct {
@@ -94,9 +95,12 @@ func (h *handler) handleInjectDriverReadySelector(w http.ResponseWriter, r *http
 	}
 	if !podHasDriverReadyLabelSelectorOrAffinity(&pod, h.driverReadyLabel) &&
 		podHasCsiGCSVolume(&pod, h.driverName, h.k8sClient.CoreV1()) {
+		klog.V(5).Infof("Mutating pod %s/%s", pod.Namespace, pod.Name)
 		patchType := admissionv1.PatchTypeJSONPatch
 		admresp.PatchType = &patchType
 		admresp.Patch = h.driverReadySelectorPodPatch
+	} else {
+		klog.V(5).Infof("Skipping pod %s/%s already has driver ready preference", pod.Namespace, pod.Name)
 	}
 
 	jsonOKResponse(w, admresp)
