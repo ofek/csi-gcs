@@ -24,6 +24,7 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+      serviceAccountName: csi-gcs-webhook
       containers:
         - image: csi-gcs-webhook-server:latest
           args:
