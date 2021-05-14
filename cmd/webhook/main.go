@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	driverNameFlag     = flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
-	versionFlag        = flag.Bool("version", false, "Print the version and exit")
-	listenAddrFlag	   = flag.String("listen", ":8080", "Listen address for the HTTP webhook server")
-	tlsCertFlag	   	= flag.String("tls-crt", "/tls/tls.crt", "TLS certificate for the HTTP webhook server")
-	tlsKeyFlag	   = flag.String("tls-key", "/tls/tls.key", "TLS key for the HTTP webhook server")
+	driverNameFlag = flag.String("driver-name", driver.CSIDriverName, "CSI driver name")
+	versionFlag    = flag.Bool("version", false, "Print the version and exit")
+	listenAddrFlag = flag.String("listen", ":9443", "Listen address for the HTTP webhook server")
+	tlsCertFlag    = flag.String("tls-crt", "/tls/tls.crt", "TLS certificate for the HTTP webhook server")
+	tlsKeyFlag     = flag.String("tls-key", "/tls/tls.key", "TLS key for the HTTP webhook server")
 )
 
 func main() {
@@ -46,19 +46,20 @@ func main() {
 	srv := &http.Server{
 		Addr:    *listenAddrFlag,
 		Handler: wbk,
-		ReadTimeout: 5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		// mutating webhooks should answer within milliseconds, those timeouts should be more than enough.
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 5 * time.Second,
 	}
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
+		klog.V(3).Info("Server Starting")
 		if err := srv.ListenAndServeTLS(*tlsCertFlag, *tlsKeyFlag); err != nil && err != http.ErrServerClosed {
 			klog.Exitf("Server stopped unexpectedly: %+v", err)
 		}
 	}()
-	klog.V(3).Info("Server Starting")
 
 	<-done
 	klog.V(3).Info("Server stopping")
