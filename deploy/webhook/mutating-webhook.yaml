@@ -6,16 +6,20 @@ webhooks:
   - name: inject-driver-ready-selector.gcs.csi.ofek.dev
     namespaceSelector:
       matchExpressions:
+        # Kubernetes.io/metadata.name is only automatically set
+        # in kubernetes >= 1.21 and if NamespaceDefaultLabelName feature gate
+        # isn't disabled.
         - key: kubernetes.io/metadata.name
           operator: NotIn
           values:
+            # Avoid matching system pods.
             - kube-system
     admissionReviewVersions:
       - v1
       - v1beta1
     clientConfig:
       service:
-        name: webhook-service
+        name: csi-gcs-webhook-server
         namespace: system
         path: /mutate-inject-driver-ready-selector
     failurePolicy: Ignore

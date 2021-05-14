@@ -6,7 +6,7 @@ configurations:
 
 resources:
 # - ../../base
-- ../../webhook
+- ../../webhook # comment to disable webhook
 
 images:
 - name: docker.io/ofekmeister/csi-gcs
@@ -18,9 +18,10 @@ namespace: kube-system
 
 patchesStrategicMerge:
 #- uselocalimage.yaml
-- webhook-uselocalimage.yaml
-- webhook-cert-server.yaml
-- webhook-cert-client.yaml
+- webhook-uselocalimage.yaml # comment to disable webhook
+- webhook-cert-server.yaml # comment to disable webhook
+- webhook-cert-client.yaml # comment to disable webhook
+- webhook-verbose.yaml # comment to disable webhook
 
 # requires the run 'invoke tls-cert'
 secretGenerator:
