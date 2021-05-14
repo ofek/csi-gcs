@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: csi-gcs-webhook-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  template:
+    spec:
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: csi-gcs-webhook
+      containers:
+        - name: server
+          volumeMounts:
+              - mountPath: /tls
+                name: cert
+                readOnly: true

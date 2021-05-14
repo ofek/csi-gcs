@@ -1,0 +1,8 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: gcs.csi.ofek.dev
+webhooks:
+  - name: inject-driver-ready-selector.gcs.csi.ofek.dev
+    clientConfig:
+      caBundle: $(WEBHOOK_CA_BUNDLE)

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: csi-gcs-webhook-server
+spec:
+  ports:
+    - port: 443
+      targetPort: 9443
+  selector:
+    app.kubernetes.io/name: webhook-server
+    app.kubernetes.io/instance: csi-gcs

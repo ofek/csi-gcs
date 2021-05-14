@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: csi-gcs-webhook-server
+  labels:
+    app.kubernetes.io/name: webhook-server
+    app.kubernetes.io/instance: csi-gcs
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webhook-server
+      app.kubernetes.io/instance: csi-gcs
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: webhook-server
+        app.kubernetes.io/instance: csi-gcs
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - image: csi-gcs-webhook-server:latest
+          args:
+            - '-v=5'
+          name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9443
+              scheme: HTTPS
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9443
+              scheme: HTTPS
+          resources:
+            limits:
+              cpu: 100m
+              memory: 20Mi
+            requests:
+              cpu: 100m
+              memory: 20Mi
+      terminationGracePeriodSeconds: 6
