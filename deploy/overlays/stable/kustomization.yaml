@@ -4,4 +4,4 @@ bases:
 - ../../base
 images:
 - name: docker.io/ofekmeister/csi-gcs
-  newTag: v0.7.0
+  newTag: v0.8.0
