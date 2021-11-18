@@ -11,9 +11,11 @@ spec:
       labels:
         app: {{ include "csi-gcs.fullname" . }}
     spec:
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-        kubernetes.io/os: linux
-      priorityClassName: system-node-critical
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      priorityClassName: {{ include "csi-gcs.priorityClassName" . }}
       tolerations:
       - operator: "Exists"
       hostNetwork: true
