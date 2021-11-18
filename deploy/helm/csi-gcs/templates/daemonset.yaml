@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "csi-gcs.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "csi-gcs.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "csi-gcs.fullname" . }}
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: "Exists"
+      hostNetwork: true
+      serviceAccount: {{ include "csi-gcs.serviceAccountName" . }}
+      containers:
+      - name: csi-node-driver-registrar
+        image: {{ .Values.images.registrar.repository }}:{{ .Values.images.registrar.tag }}
+        imagePullPolicy: Always
+        args:
+        - "--v=5"
+        - "--csi-address=$(ADDRESS)"
+        - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+        env:
+        - name: ADDRESS
+          value: /csi/csi.sock
+        - name: DRIVER_REG_SOCK_PATH
+          value: /var/lib/kubelet/plugins/{{ .Values.driverName }}/csi.sock
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: registration-dir
+          mountPath: /registration
+        - name: socket-dir
+          mountPath: /csi
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 20Mi
+      - name: csi-provisioner
+        image: {{ .Values.images.provisioner.repository }}:{{ .Values.images.provisioner.tag }}
+        args:
+          - "--csi-address=$(ADDRESS)"
+          - "--extra-create-metadata"
+          - "--enable-leader-election"
+          - "--leader-election-namespace=$(NAMESPACE)"
+        env:
+          - name: ADDRESS
+            value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: NAMESPACE
+            value: {{ .Release.Namespace }}
+        imagePullPolicy: "IfNotPresent"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /var/lib/csi/sockets/pluginproxy/
+      - name: csi-resizer
+        image: {{ .Values.images.resizer.repository }}:{{ .Values.images.resizer.tag }}
+        args:
+          - "--v=5"
+          - "--csi-address=$(ADDRESS)"
+          - "--leader-election"
+          - "--leader-election-namespace=$(NAMESPACE)"
+        env:
+          - name: ADDRESS
+            value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: NAMESPACE
+            value: {{ .Release.Namespace }}
+        imagePullPolicy: "IfNotPresent"
+        volumeMounts:
+          - name: socket-dir
+            mountPath: /var/lib/csi/sockets/pluginproxy/
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 20Mi
+      - name: {{ include "csi-gcs.fullname" . }}
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["SYS_ADMIN"]
+          allowPrivilegeEscalation: true
+        image: {{ .Values.images.driver.repository }}:{{ .Values.images.driver.tag }}
+        imagePullPolicy: Always
+        args:
+        - "--node-name=$(KUBE_NODE_NAME)"
+        # https://github.com/kubernetes/community/blob/master/contributors/devel/sig-instrumentation/logging.md
+        - "--v=5"
+        - "--delete-orphaned-pods=true"
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: fuse-device
+          mountPath: /dev/fuse
+        - name: mountpoint-dir
+          mountPath: /var/lib/kubelet/pods
+          mountPropagation: Bidirectional
+        - name: socket-dir
+          mountPath: /csi
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 80Mi
+      volumes:
+      - name: fuse-device
+        hostPath:
+          path: /dev/fuse
+      # https://kubernetes-csi.github.io/docs/deploying.html#driver-volume-mounts
+      - name: socket-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins/{{ .Values.driverName }}
+          type: DirectoryOrCreate
+      - name: mountpoint-dir
+        hostPath:
+          path: /var/lib/kubelet/pods
+          type: Directory
+      - name: registration-dir
+        hostPath:
+          path: /var/lib/kubelet/plugins_registry
+          type: Directory

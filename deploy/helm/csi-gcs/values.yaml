@@ -1,0 +1,42 @@
+# Default values for csi-gcs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+images:
+  registrar:
+    repository: gcr.io/gke-release/csi-node-driver-registrar #quay.io/k8scsi/csi-node-driver-registrar
+    tag: v1.2.0-gke.0
+  provisioner:
+    repository: gcr.io/gke-release/csi-provisioner #quay.io/k8scsi/csi-provisioner
+    tag: v1.6.0-gke.0
+  resizer:
+    repository: gcr.io/gke-release/csi-resizer #quay.io/k8scsi/csi-resizer
+    tag: v0.2.0-gke.0
+  driver:
+    repository: docker.io/ofekmeister/csi-gcs
+    tag: latest
+  
+driverName: gcs.csi.ofek.dev
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
