@@ -6,6 +6,9 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+nodeSelector:
+  kubernetes.io/os: linux
+
 images:
   registrar:
     repository: gcr.io/gke-release/csi-node-driver-registrar #quay.io/k8scsi/csi-node-driver-registrar
@@ -21,6 +24,9 @@ images:
     tag: latest
   
 driverName: gcs.csi.ofek.dev
+priorityClass:
+  create: true
+  name: priorityclass-gcs
 
 serviceAccount:
   # Specifies whether a service account should be created

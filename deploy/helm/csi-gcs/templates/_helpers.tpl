@@ -40,3 +40,14 @@ Create the name of the service account to use
 {{- default "csi-gcs" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the name of the priority class to use
+*/}}
+{{- define "csi-gcs.priorityClassName" -}}
+{{- if .Values.priorityClass.create }}
+{{- default (include "csi-gcs.fullname" .) .Values.priorityClass.name }}
+{{- else }}
+{{- default "csi-gcs-priority" .Values.priorityClass.name }}
+{{- end }}
+{{- end }}
