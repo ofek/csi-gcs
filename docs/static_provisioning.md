@@ -100,72 +100,75 @@ The bucket name is resolved in the following order:
 
 You can pass flags to [gcsfuse][gcsfuse-github] in the following ways (ordered by precedence):
 
-1. ??? info "**PersistentVolume.spec.csi.volumeAttributes**"
-       ```yaml
-       apiVersion: v1
-       kind: PersistentVolume
-       spec:
-         csi:
-           driver: gcs.csi.ofek.dev
-           volumeAttributes:
-             gid: "63147"
-             dirMode: "0775"
-             fileMode: "0664"
-       ```
+1. "**PersistentVolume.spec.csi.volumeAttributes**"
 
-        | Option | Type | Description |
-        | --- | --- | --- |
-        | `dirMode` | Octal Integer | Permission bits for directories. (default: 0775) |
-        | `fileMode` | Octal Integer | Permission bits for files. (default: 0664) |
-        | `gid` | Integer | GID owner of all inodes. (default: 63147) |
-        | `uid` | Integer | UID owner of all inodes. (default: -1) |
-        | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
-        | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
-        | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
-        | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
-        | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
-        | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
-        | `fuseMountOptions` | Text[] | Additional comma-separated system-specific [mount options][fuse-mount-options]. Be careful! |
+   ```yaml
+   apiVersion: v1
+   kind: PersistentVolume
+   spec:
+     csi:
+       driver: gcs.csi.ofek.dev
+       volumeAttributes:
+         gid: "63147"
+         dirMode: "0775"
+         fileMode: "0664"
+   ```
 
-1. ??? info "**PersistentVolume.spec.mountOptions**"
-       ```yaml
-       apiVersion: v1
-       kind: PersistentVolume
-       spec:
-         mountOptions:
-         - --gid=63147
-         - --dir-mode=0775
-         - --file-mode=0664
-       ```
+    | Option | Type | Description |
+    | --- | --- | --- |
+    | `dirMode` | Octal Integer | Permission bits for directories. (default: 0775) |
+    | `fileMode` | Octal Integer | Permission bits for files. (default: 0664) |
+    | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+    | `uid` | Integer | UID owner of all inodes. (default: -1) |
+    | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+    | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
+    | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+    | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+    | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+    | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+    | `fuseMountOptions` | Text[] | Additional comma-separated system-specific [mount options][fuse-mount-options]. Be careful! |
 
-        | Option | Type | Description |
-        | --- | --- | --- |
-        | `dir-mode` | Octal Integer | Permission bits for directories. (default: 0775) |
-        | `file-mode` | Octal Integer | Permission bits for files. (default: 0664) |
-        | `gid` | Integer | GID owner of all inodes. (default: 63147) |
-        | `uid` | Integer | UID owner of all inodes. (default: -1) |
-        | `implicit-dirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
-        | `billing-project` | Text | Project to use for billing when accessing requester pays buckets. |
-        | `limit-bytes-per-sec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
-        | `limit-ops-per-sec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
-        | `stat-cache-ttl` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
-        | `type-cache-ttl` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
-        | `fuse-mount-option` | Text | Additional comma-separated system-specific [mount option][fuse-mount-options]. Be careful! |
+1. "**PersistentVolume.spec.mountOptions**"
 
-1. ??? info "**PersistentVolume.spec.csi.nodePublishSecretRef**"
-       | Option | Type | Description |
-       | --- | --- | --- |
-       | `dirMode` | Octal Integer | Permission bits for directories, in octal. (default: 0775) |
-       | `fileMode` | Octal Integer | Permission bits for files, in octal. (default: 0664) |
-       | `gid` | Integer | GID owner of all inodes. (default: 63147) |
-       | `uid` | Integer | UID owner of all inodes. (default: -1) |
-       | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
-       | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
-       | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
-       | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
-       | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
-       | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
-       | `fuseMountOptions` | Text[] | Additional comma-separated system-specific [mount options][fuse-mount-options]. Be careful! |
+    ```yaml
+    apiVersion: v1
+    kind: PersistentVolume
+    spec:
+     mountOptions:
+     - --gid=63147
+     - --dir-mode=0775
+     - --file-mode=0664
+    ```
+
+    | Option | Type | Description |
+    | --- | --- | --- |
+    | `dir-mode` | Octal Integer | Permission bits for directories. (default: 0775) |
+    | `file-mode` | Octal Integer | Permission bits for files. (default: 0664) |
+    | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+    | `uid` | Integer | UID owner of all inodes. (default: -1) |
+    | `implicit-dirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+    | `billing-project` | Text | Project to use for billing when accessing requester pays buckets. |
+    | `limit-bytes-per-sec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+    | `limit-ops-per-sec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+    | `stat-cache-ttl` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+    | `type-cache-ttl` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+    | `fuse-mount-option` | Text | Additional comma-separated system-specific [mount option][fuse-mount-options]. Be careful! |
+
+1. "**PersistentVolume.spec.csi.nodePublishSecretRef**"
+
+    | Option | Type | Description |
+    | --- | --- | --- |
+    | `dirMode` | Octal Integer | Permission bits for directories, in octal. (default: 0775) |
+    | `fileMode` | Octal Integer | Permission bits for files, in octal. (default: 0664) |
+    | `gid` | Integer | GID owner of all inodes. (default: 63147) |
+    | `uid` | Integer | UID owner of all inodes. (default: -1) |
+    | `implicitDirs` | Flag | [Implicitly][gcsfuse-implicit-dirs] define directories based on content. |
+    | `billingProject` | Text | Project to use for billing when accessing requester pays buckets. |
+    | `limitBytesPerSec` | Integer | Bandwidth limit for reading data, measured over a 30-second window. The default is -1 (no limit). |
+    | `limitOpsPerSec` | Integer | Operations per second limit, measured over a 30-second window. The default is 5. Use -1 for no limit. |
+    | `statCacheTTL` | Text | How long to cache StatObject results and inode attributes e.g. `1h`. |
+    | `typeCacheTTL` | Text | How long to cache name -> file/dir mappings in directory inodes e.g. `1h`. |
+    | `fuseMountOptions` | Text[] | Additional comma-separated system-specific [mount options][fuse-mount-options]. Be careful! |
 
 ## Permission
 
