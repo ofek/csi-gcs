@@ -11,14 +11,14 @@ nodeSelector:
 
 images:
   registrar:
-    repository: gcr.io/gke-release/csi-node-driver-registrar #quay.io/k8scsi/csi-node-driver-registrar
-    tag: v1.2.0-gke.0
+    repository: quay.io/k8scsi/csi-node-driver-registrar
+    tag: v1.2.0
   provisioner:
-    repository: gcr.io/gke-release/csi-provisioner #quay.io/k8scsi/csi-provisioner
-    tag: v1.6.0-gke.0
+    repository: quay.io/k8scsi/csi-provisioner
+    tag: v1.6.0
   resizer:
-    repository: gcr.io/gke-release/csi-resizer #quay.io/k8scsi/csi-resizer
-    tag: v0.2.0-gke.0
+    repository: quay.io/k8scsi/csi-resizer
+    tag: v0.2.0
   driver:
     repository: docker.io/ofekmeister/csi-gcs
     tag: latest
