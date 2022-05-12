@@ -1,22 +1,22 @@
-FROM golang:1.15.6-alpine3.12 AS build-gcsfuse
+FROM golang:1.18.2-alpine3.15 AS build-gcsfuse
 
 ARG gcsfuse_version
 ARG global_ldflags
 
 RUN apk add --update --no-cache fuse fuse-dev git
 
-WORKDIR ${GOPATH}
+WORKDIR ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse
 
 # Create Tmp Bin Dir
 RUN mkdir /tmp/bin
 
 # Install gcsfuse using the specified version or commit hash
-RUN go get -u github.com/googlecloudplatform/gcsfuse && cd ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse && git checkout "v${gcsfuse_version}"
-RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
+RUN git clone https://github.com/googlecloudplatform/gcsfuse . && git checkout "v${gcsfuse_version}"
+RUN go install ./tools/build_gcsfuse
 RUN mkdir /tmp/gcsfuse
-RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
+RUN build_gcsfuse . /tmp/gcsfuse ${gcsfuse_version} -ldflags "all=${global_ldflags}" -ldflags "-X main.gcsfuseVersion=${gcsfuse_version} ${global_ldflags}"
 
-FROM alpine:3.12
+FROM alpine:3.15
 
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 LABEL "org.opencontainers.image.authors"="Ofek Lev <ofekmeister@gmail.com>"
