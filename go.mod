@@ -7,8 +7,8 @@ require (
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/kubernetes-csi/csi-lib-utils v0.7.0
 	github.com/kubernetes-csi/csi-test/v3 v3.1.1-0.20200525083111-e89bc15a6e5e
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.19.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0
 	google.golang.org/grpc v1.26.0
