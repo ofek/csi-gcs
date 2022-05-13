@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.38.0
-	github.com/container-storage-interface/spec v1.2.0
+	github.com/container-storage-interface/spec v1.6.0
 	github.com/kubernetes-csi/csi-lib-utils v0.7.0
 	github.com/kubernetes-csi/csi-test/v3 v3.1.1-0.20200525083111-e89bc15a6e5e
 	github.com/onsi/ginkgo v1.10.3
