@@ -29,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         python -m pip install --upgrade -r requirements.txt
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v3
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
