@@ -168,7 +168,7 @@ func BucketExists(ctx context.Context, bucket *storage.BucketHandle) (exists boo
 	return true, nil
 }
 
-func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[string]string, err error) {
+func GetPvcAnnotations(ctx context.Context, pvcName string, pvcNamespace string) (annotations map[string]string, err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func GetPvcAnnotations(pvcName string, pvcNamespace string) (annotations map[str
 		return nil, err
 	}
 
-	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(ctx, pvcName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func DriverReadyLabelJSONPatchEscaped(driverName string) string {
 }
 
 // SetDriverReadyLabel set the label <driver name>/driver-ready=<isReady> on the given node.
-func SetDriverReadyLabel(driverName string, nodeName string, isReady bool) (err error) {
+func SetDriverReadyLabel(ctx context.Context, driverName string, nodeName string, isReady bool) (err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -222,14 +222,14 @@ func SetDriverReadyLabel(driverName string, nodeName string, isReady bool) (err 
 		return err
 	}
 
-	_, err = clientset.CoreV1().Nodes().Patch(nodeName, types.JSONPatchType, patchBytes)
+	_, err = clientset.CoreV1().Nodes().Patch(ctx, nodeName, types.JSONPatchType, patchBytes, metav1.PatchOptions{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func DeletePod(namespace string, name string) (err error) {
+func DeletePod(ctx context.Context, namespace string, name string) (err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -240,10 +240,10 @@ func DeletePod(namespace string, name string) (err error) {
 		return err
 	}
 
-	return clientset.CoreV1().Pods(namespace).Delete(name, &metav1.DeleteOptions{})
+	return clientset.CoreV1().Pods(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }
 
-func GetRegisteredMounts(node string) (list *v1beta1.PublishedVolumeList, err error) {
+func GetRegisteredMounts(ctx context.Context, node string) (list *v1beta1.PublishedVolumeList, err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
@@ -255,14 +255,14 @@ func GetRegisteredMounts(node string) (list *v1beta1.PublishedVolumeList, err er
 		return nil, err
 	}
 
-	return clientset.GcsV1beta1().PublishedVolumes().List(metav1.ListOptions{
+	return clientset.GcsV1beta1().PublishedVolumes().List(ctx, metav1.ListOptions{
 		LabelSelector: labels.Set(map[string]string{
 			"gcs.csi.ofek.dev/node": node,
 		}).String(),
 	})
 }
 
-func RegisterMount(volumeID string, targetPath string, node string, podNamespace string, podName string, options map[string]string) (err error) {
+func RegisterMount(ctx context.Context, volumeID string, targetPath string, node string, podNamespace string, podName string, options map[string]string) (err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -280,12 +280,12 @@ func RegisterMount(volumeID string, targetPath string, node string, podNamespace
 
 	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
 
-	nodeResource, err := coreClientset.CoreV1().Nodes().Get(node, metav1.GetOptions{})
+	nodeResource, err := coreClientset.CoreV1().Nodes().Get(ctx, node, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
-	_, err = clientset.GcsV1beta1().PublishedVolumes().Create(&v1beta1.PublishedVolume{
+	_, err = clientset.GcsV1beta1().PublishedVolumes().Create(ctx, &v1beta1.PublishedVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
@@ -310,7 +310,7 @@ func RegisterMount(volumeID string, targetPath string, node string, podNamespace
 				Name:      podName,
 			},
 		},
-	})
+	}, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -318,7 +318,7 @@ func RegisterMount(volumeID string, targetPath string, node string, podNamespace
 	return nil
 }
 
-func UnregisterMount(volumeID string, targetPath string, node string) (err error) {
+func UnregisterMount(ctx context.Context, volumeID string, targetPath string, node string) (err error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -333,7 +333,7 @@ func UnregisterMount(volumeID string, targetPath string, node string) (err error
 	name := strconv.FormatUint(uint64(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%s-%s-%s", volumeID, targetPath, node)))), 16)
 
 	delPropPolicy := metav1.DeletePropagationForeground
-	err = clientset.GcsV1beta1().PublishedVolumes().Delete(name, &metav1.DeleteOptions{
+	err = clientset.GcsV1beta1().PublishedVolumes().Delete(ctx, name, metav1.DeleteOptions{
 		PropagationPolicy: &delPropPolicy,
 	})
 	if err != nil {

@@ -38,8 +38,10 @@ func NewGCSDriver(name, node, endpoint string, version string, deleteOrphanedPod
 }
 
 func (d *GCSDriver) Run() error {
+	ctx := context.TODO()
+
 	// set the driver-ready label to false at the beginning to handle edge-case where the controller didn't terminated gracefully
-	if err := util.SetDriverReadyLabel(d.name, d.nodeName, false); err != nil {
+	if err := util.SetDriverReadyLabel(ctx, d.name, d.nodeName, false); err != nil {
 		klog.Warningf("Unable to set driver-ready=false label on the node, error: %v", err)
 	}
 
@@ -80,29 +82,33 @@ func (d *GCSDriver) Run() error {
 	csi.RegisterIdentityServer(d.server, d)
 	csi.RegisterNodeServer(d.server, d)
 	csi.RegisterControllerServer(d.server, d)
-	if err = util.SetDriverReadyLabel(d.name, d.nodeName, true); err != nil {
+	if err = util.SetDriverReadyLabel(ctx, d.name, d.nodeName, true); err != nil {
 		klog.Warningf("unable to set driver-ready=true label on the node, error: %v", err)
 	}
 	return d.server.Serve(listener)
 }
 
 func (d *GCSDriver) stop() {
+	ctx := context.TODO()
+
 	d.server.Stop()
-	if err := util.SetDriverReadyLabel(d.name, d.nodeName, false); err != nil {
+	if err := util.SetDriverReadyLabel(ctx, d.name, d.nodeName, false); err != nil {
 		klog.Warningf("Unable to set driver-ready=false label on the node, error: %v", err)
 	}
 	klog.V(1).Info("CSI driver stopped")
 }
 
 func (d *GCSDriver) RunPodCleanup() (err error) {
-	publishedVolumes, err := util.GetRegisteredMounts(d.nodeName)
+	ctx := context.TODO()
+
+	publishedVolumes, err := util.GetRegisteredMounts(ctx, d.nodeName)
 	if err != nil {
 		return err
 	}
 
 	for _, publishedVolume := range publishedVolumes.Items {
 		// Killing Pod because its Volume is no longer mounted
-		err = util.DeletePod(publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
+		err = util.DeletePod(ctx, publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
 		if err == nil {
 			klog.V(4).Infof("Deleted Pod %s/%s because its volume was no longer mounted", publishedVolume.Spec.Pod.Namespace, publishedVolume.Spec.Pod.Name)
 		} else {

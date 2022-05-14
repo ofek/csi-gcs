@@ -19,6 +19,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1beta1 "github.com/ofek/csi-gcs/pkg/apis/published-volume/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -38,7 +40,7 @@ var publishedvolumesResource = schema.GroupVersionResource{Group: "gcs.csi.ofek.
 var publishedvolumesKind = schema.GroupVersionKind{Group: "gcs.csi.ofek.dev", Version: "v1beta1", Kind: "PublishedVolume"}
 
 // Get takes name of the publishedVolume, and returns the corresponding publishedVolume object, and an error if there is any.
-func (c *FakePublishedVolumes) Get(name string, options v1.GetOptions) (result *v1beta1.PublishedVolume, err error) {
+func (c *FakePublishedVolumes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.PublishedVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(publishedvolumesResource, name), &v1beta1.PublishedVolume{})
 	if obj == nil {
@@ -48,7 +50,7 @@ func (c *FakePublishedVolumes) Get(name string, options v1.GetOptions) (result *
 }
 
 // List takes label and field selectors, and returns the list of PublishedVolumes that match those selectors.
-func (c *FakePublishedVolumes) List(opts v1.ListOptions) (result *v1beta1.PublishedVolumeList, err error) {
+func (c *FakePublishedVolumes) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.PublishedVolumeList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(publishedvolumesResource, publishedvolumesKind, opts), &v1beta1.PublishedVolumeList{})
 	if obj == nil {
@@ -69,13 +71,13 @@ func (c *FakePublishedVolumes) List(opts v1.ListOptions) (result *v1beta1.Publis
 }
 
 // Watch returns a watch.Interface that watches the requested publishedVolumes.
-func (c *FakePublishedVolumes) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakePublishedVolumes) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(publishedvolumesResource, opts))
 }
 
 // Create takes the representation of a publishedVolume and creates it.  Returns the server's representation of the publishedVolume, and an error, if there is any.
-func (c *FakePublishedVolumes) Create(publishedVolume *v1beta1.PublishedVolume) (result *v1beta1.PublishedVolume, err error) {
+func (c *FakePublishedVolumes) Create(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.CreateOptions) (result *v1beta1.PublishedVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(publishedvolumesResource, publishedVolume), &v1beta1.PublishedVolume{})
 	if obj == nil {
@@ -85,7 +87,7 @@ func (c *FakePublishedVolumes) Create(publishedVolume *v1beta1.PublishedVolume) 
 }
 
 // Update takes the representation of a publishedVolume and updates it. Returns the server's representation of the publishedVolume, and an error, if there is any.
-func (c *FakePublishedVolumes) Update(publishedVolume *v1beta1.PublishedVolume) (result *v1beta1.PublishedVolume, err error) {
+func (c *FakePublishedVolumes) Update(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.UpdateOptions) (result *v1beta1.PublishedVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootUpdateAction(publishedvolumesResource, publishedVolume), &v1beta1.PublishedVolume{})
 	if obj == nil {
@@ -95,22 +97,22 @@ func (c *FakePublishedVolumes) Update(publishedVolume *v1beta1.PublishedVolume) 
 }
 
 // Delete takes name of the publishedVolume and deletes it. Returns an error if one occurs.
-func (c *FakePublishedVolumes) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakePublishedVolumes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(publishedvolumesResource, name), &v1beta1.PublishedVolume{})
+		Invokes(testing.NewRootDeleteActionWithOptions(publishedvolumesResource, name, opts), &v1beta1.PublishedVolume{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakePublishedVolumes) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(publishedvolumesResource, listOptions)
+func (c *FakePublishedVolumes) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(publishedvolumesResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.PublishedVolumeList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched publishedVolume.
-func (c *FakePublishedVolumes) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.PublishedVolume, err error) {
+func (c *FakePublishedVolumes) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PublishedVolume, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootPatchSubresourceAction(publishedvolumesResource, name, pt, data, subresources...), &v1beta1.PublishedVolume{})
 	if obj == nil {
