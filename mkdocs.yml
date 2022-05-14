@@ -13,11 +13,23 @@ theme:
   name: material
   language: en
   features:
+    - navigation.sections
     - navigation.tabs
   palette:
-    scheme: slate
-    primary: blue
-    accent: blue
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
   font:
     text: Roboto
     code: Roboto Mono
@@ -51,7 +63,9 @@ markdown_extensions:
   # Built-in
   - markdown.extensions.abbr:
   - markdown.extensions.admonition:
+  - markdown.extensions.attr_list:
   - markdown.extensions.footnotes:
+  - markdown.extensions.meta:
   - markdown.extensions.tables:
   - markdown.extensions.toc:
       permalink: true
@@ -79,23 +93,23 @@ markdown_extensions:
   - pymdownx.magiclink:
       repo_url_shortener: true
       repo_url_shorthand: true
+      social_url_shortener: true
       social_url_shorthand: true
+      normalize_issue_symbols: true
       provider: github
       user: ofek
       repo: csi-gcs
   - pymdownx.mark:
+  - pymdownx.progressbar:
+  - pymdownx.saneheaders:
   - pymdownx.smartsymbols:
   - pymdownx.snippets:
-      base_path: docs/.snippets
+      check_paths: true
+      base_path:
+        - docs/.snippets
   - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-        - name: math
-          class: arithmatex
-          format: !!python/name:pymdownx.arithmatex.fence_mathjax_format
   - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde:
@@ -114,5 +128,3 @@ extra:
       link: https://www.linkedin.com/in/ofeklev/
 extra_css:
   - assets/css/custom.css
-extra_javascript:
-  - assets/js/custom.js

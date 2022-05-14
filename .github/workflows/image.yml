@@ -1,4 +1,4 @@
-name: Image
+name: image
 
 on: [push, pull_request]
 
