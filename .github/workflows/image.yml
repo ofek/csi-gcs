@@ -73,7 +73,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         python -m pip install --upgrade -r requirements.txt
 
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v3
       with:
         name: Driver
         path: bin
