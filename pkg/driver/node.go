@@ -132,6 +132,7 @@ func (driver *GCSDriver) NodePublishVolume(ctx context.Context, req *csi.NodePub
 
 	if driver.deleteOrphanedPods {
 		err = util.RegisterMount(
+			ctx,
 			req.VolumeId,
 			req.TargetPath,
 			driver.nodeName,
@@ -181,7 +182,7 @@ func (driver *GCSDriver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeU
 	}
 
 	if driver.deleteOrphanedPods {
-		err = util.UnregisterMount(req.VolumeId, req.TargetPath, driver.nodeName)
+		err = util.UnregisterMount(ctx, req.VolumeId, req.TargetPath, driver.nodeName)
 		if err != nil {
 			klog.Error(err)
 		}

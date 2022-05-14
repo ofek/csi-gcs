@@ -55,7 +55,7 @@ func (d *GCSDriver) CreateVolume(ctx context.Context, req *csi.CreateVolumeReque
 	var pvcAnnotations = map[string]string{}
 
 	if pvcNameSelected && pvcNamespaceSelected {
-		loadedPvcAnnotations, err := util.GetPvcAnnotations(pvcName, pvcNamespace)
+		loadedPvcAnnotations, err := util.GetPvcAnnotations(ctx, pvcName, pvcNamespace)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Failed to load PersistentVolumeClaim: %v", err)
 		}
@@ -313,6 +313,12 @@ func (d *GCSDriver) DeleteSnapshot(ctx context.Context, req *csi.DeleteSnapshotR
 
 func (d *GCSDriver) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
 	klog.V(4).Infof("Method ListSnapshots called with: %s", protosanitizer.StripSecrets(req))
+
+	return nil, status.Error(codes.Unimplemented, "")
+}
+
+func (d *GCSDriver) ControllerGetVolume(ctx context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
+	klog.V(4).Infof("Method ControllerGetVolume called with: %s", protosanitizer.StripSecrets(req))
 
 	return nil, status.Error(codes.Unimplemented, "")
 }

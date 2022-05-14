@@ -74,7 +74,10 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
-var _ clientset.Interface = &Clientset{}
+var (
+	_ clientset.Interface = &Clientset{}
+	_ testing.FakeClient  = &Clientset{}
+)
 
 // GcsV1beta1 retrieves the GcsV1beta1Client
 func (c *Clientset) GcsV1beta1() gcsv1beta1.GcsV1beta1Interface {

@@ -19,6 +19,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"time"
 
 	v1beta1 "github.com/ofek/csi-gcs/pkg/apis/published-volume/v1beta1"
@@ -37,14 +38,14 @@ type PublishedVolumesGetter interface {
 
 // PublishedVolumeInterface has methods to work with PublishedVolume resources.
 type PublishedVolumeInterface interface {
-	Create(*v1beta1.PublishedVolume) (*v1beta1.PublishedVolume, error)
-	Update(*v1beta1.PublishedVolume) (*v1beta1.PublishedVolume, error)
-	Delete(name string, options *v1.DeleteOptions) error
-	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*v1beta1.PublishedVolume, error)
-	List(opts v1.ListOptions) (*v1beta1.PublishedVolumeList, error)
-	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.PublishedVolume, err error)
+	Create(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.CreateOptions) (*v1beta1.PublishedVolume, error)
+	Update(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.UpdateOptions) (*v1beta1.PublishedVolume, error)
+	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
+	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.PublishedVolume, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.PublishedVolumeList, error)
+	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PublishedVolume, err error)
 	PublishedVolumeExpansion
 }
 
@@ -61,19 +62,19 @@ func newPublishedVolumes(c *GcsV1beta1Client) *publishedVolumes {
 }
 
 // Get takes name of the publishedVolume, and returns the corresponding publishedVolume object, and an error if there is any.
-func (c *publishedVolumes) Get(name string, options v1.GetOptions) (result *v1beta1.PublishedVolume, err error) {
+func (c *publishedVolumes) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.PublishedVolume, err error) {
 	result = &v1beta1.PublishedVolume{}
 	err = c.client.Get().
 		Resource("publishedvolumes").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // List takes label and field selectors, and returns the list of PublishedVolumes that match those selectors.
-func (c *publishedVolumes) List(opts v1.ListOptions) (result *v1beta1.PublishedVolumeList, err error) {
+func (c *publishedVolumes) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.PublishedVolumeList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -83,13 +84,13 @@ func (c *publishedVolumes) List(opts v1.ListOptions) (result *v1beta1.PublishedV
 		Resource("publishedvolumes").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Watch returns a watch.Interface that watches the requested publishedVolumes.
-func (c *publishedVolumes) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *publishedVolumes) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -99,66 +100,69 @@ func (c *publishedVolumes) Watch(opts v1.ListOptions) (watch.Interface, error) {
 		Resource("publishedvolumes").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch()
+		Watch(ctx)
 }
 
 // Create takes the representation of a publishedVolume and creates it.  Returns the server's representation of the publishedVolume, and an error, if there is any.
-func (c *publishedVolumes) Create(publishedVolume *v1beta1.PublishedVolume) (result *v1beta1.PublishedVolume, err error) {
+func (c *publishedVolumes) Create(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.CreateOptions) (result *v1beta1.PublishedVolume, err error) {
 	result = &v1beta1.PublishedVolume{}
 	err = c.client.Post().
 		Resource("publishedvolumes").
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(publishedVolume).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Update takes the representation of a publishedVolume and updates it. Returns the server's representation of the publishedVolume, and an error, if there is any.
-func (c *publishedVolumes) Update(publishedVolume *v1beta1.PublishedVolume) (result *v1beta1.PublishedVolume, err error) {
+func (c *publishedVolumes) Update(ctx context.Context, publishedVolume *v1beta1.PublishedVolume, opts v1.UpdateOptions) (result *v1beta1.PublishedVolume, err error) {
 	result = &v1beta1.PublishedVolume{}
 	err = c.client.Put().
 		Resource("publishedvolumes").
 		Name(publishedVolume.Name).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(publishedVolume).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Delete takes name of the publishedVolume and deletes it. Returns an error if one occurs.
-func (c *publishedVolumes) Delete(name string, options *v1.DeleteOptions) error {
+func (c *publishedVolumes) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Resource("publishedvolumes").
 		Name(name).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *publishedVolumes) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *publishedVolumes) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
-	if listOptions.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
+	if listOpts.TimeoutSeconds != nil {
+		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Resource("publishedvolumes").
-		VersionedParams(&listOptions, scheme.ParameterCodec).
+		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // Patch applies the patch and returns the patched publishedVolume.
-func (c *publishedVolumes) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.PublishedVolume, err error) {
+func (c *publishedVolumes) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PublishedVolume, err error) {
 	result = &v1beta1.PublishedVolume{}
 	err = c.client.Patch(pt).
 		Resource("publishedvolumes").
-		SubResource(subresources...).
 		Name(name).
+		SubResource(subresources...).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(data).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
