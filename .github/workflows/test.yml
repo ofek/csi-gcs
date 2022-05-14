@@ -7,7 +7,7 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install Go
       uses: actions/setup-go@v3
@@ -42,7 +42,7 @@ jobs:
     # Secrets are only available for Push
     if: github.event_name == 'push'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install Go
       uses: actions/setup-go@v3
