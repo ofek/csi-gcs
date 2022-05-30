@@ -95,13 +95,16 @@ func GetKey(secrets map[string]string, keyStoragePath string) (string, error) {
 
 	keyContents, keyNameExists := secrets["key"]
 	if !keyNameExists {
-		return "", status.Errorf(codes.Internal, "Secret '%s' is unavailable", "key")
+		keyContents, keyNameExists = secrets["key.json"]
+		if !keyNameExists {
+			return "", status.Errorf(codes.Internal, "Secret has no keys named '%s' or '%s'", "key", "key.json")
+		}
 	}
 
 	klog.V(5).Info("Saving key contents to a temporary location")
 	keyFile, err := CreateFile(keyStoragePath, keyContents)
 	if err != nil {
-		return "", status.Errorf(codes.Internal, "Unable to save secret 'key' to %s", keyStoragePath)
+		return "", status.Errorf(codes.Internal, "Unable to save secret 'key' / 'key.json' to %s", keyStoragePath)
 	}
 
 	return keyFile, nil
