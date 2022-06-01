@@ -12,7 +12,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	google.golang.org/api v0.79.0
 	google.golang.org/grpc v1.47.0
-	k8s.io/apimachinery v0.24.0
+	k8s.io/apimachinery v0.24.1
 	k8s.io/client-go v0.24.0
 	k8s.io/klog v1.0.0
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
