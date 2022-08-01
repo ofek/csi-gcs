@@ -11,7 +11,7 @@ require (
 	github.com/onsi/gomega v1.20.0
 	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2
 	google.golang.org/api v0.90.0
-	google.golang.org/grpc v1.47.0
+	google.golang.org/grpc v1.48.0
 	k8s.io/apimachinery v0.24.3
 	k8s.io/client-go v0.24.3
 	k8s.io/klog v1.0.0
