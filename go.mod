@@ -10,7 +10,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.23.0
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
-	google.golang.org/api v0.98.0
+	google.golang.org/api v0.101.0
 	google.golang.org/grpc v1.50.1
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.3
@@ -20,7 +20,7 @@ require (
 
 require (
 	cloud.google.com/go v0.104.0 // indirect
-	cloud.google.com/go/compute v1.7.0 // indirect
+	cloud.google.com/go/compute v1.10.0 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
@@ -37,8 +37,8 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
-	github.com/googleapis/gax-go/v2 v2.5.1 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -53,9 +53,9 @@ require (
 	golang.org/x/term v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
-	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
+	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220920201722-2b89144ce006 // indirect
+	google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
