@@ -12,6 +12,6 @@
 [gcs-location]: https://cloud.google.com/storage/docs/locations#available_locations
 [gcsfuse-github]: https://github.com/GoogleCloudPlatform/gcsfuse
 [gcsfuse-implicit-dirs]: https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/semantics.md#implicit-directories
-[fuse-mount-options]: http://man7.org/linux/man-pages/man8/mount.fuse.8.html#OPTIONS
+[fuse-mount-options]: https://man7.org/linux/man-pages/man8/mount.fuse3.8.html#OPTIONS
 [libfuse-github]: https://github.com/libfuse/libfuse
 [key-locator-heuristics]: https://pkg.go.dev/golang.org/x/oauth2/google#FindDefaultCredentials
