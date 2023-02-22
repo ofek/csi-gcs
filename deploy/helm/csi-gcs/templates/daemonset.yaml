@@ -2,12 +2,22 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "csi-gcs.fullname" . }}
+  app.kubernetes.io/name: {{ template "csi-gcs.name" . }}
+  app.kubernetes.io/managed-by: {{ .Release.Service }}
+  app.kubernetes.io/instance: {{ .Release.Name }}
+  app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  helm.sh/chart: {{ template "csi-gcs.chart" . }}
 spec:
   selector:
     matchLabels:
       app: {{ include "csi-gcs.fullname" . }}
   template:
     metadata:
+      app.kubernetes.io/name: {{ template "csi-gcs.name" . }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/version: {{ .Chart.AppVersion }}
+      helm.sh/chart: {{ template "csi-gcs.chart" . }}
       labels:
         app: {{ include "csi-gcs.fullname" . }}
     spec:
@@ -23,7 +33,7 @@ spec:
       containers:
       - name: csi-node-driver-registrar
         image: {{ .Values.images.registrar.repository }}:{{ .Values.images.registrar.tag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.images.registrar.imagePullPolicy }}
         args:
         - "--v=5"
         - "--csi-address=$(ADDRESS)"
@@ -62,7 +72,7 @@ spec:
             value: /var/lib/csi/sockets/pluginproxy/csi.sock
           - name: NAMESPACE
             value: {{ .Release.Namespace }}
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: {{ .Values.images.provisioner.imagePullPolicy }}
         volumeMounts:
           - name: socket-dir
             mountPath: /var/lib/csi/sockets/pluginproxy/
@@ -78,7 +88,7 @@ spec:
             value: /var/lib/csi/sockets/pluginproxy/csi.sock
           - name: NAMESPACE
             value: {{ .Release.Namespace }}
-        imagePullPolicy: "IfNotPresent"
+        imagePullPolicy: {{ .Values.images.resizer.imagePullPolicy }}
         volumeMounts:
           - name: socket-dir
             mountPath: /var/lib/csi/sockets/pluginproxy/
@@ -96,7 +106,7 @@ spec:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
         image: {{ .Values.images.driver.repository }}:{{ .Values.images.driver.tag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.images.driver.imagePullPolicy }}
         args:
         - "--node-name=$(KUBE_NODE_NAME)"
         # https://github.com/kubernetes/community/blob/master/contributors/devel/sig-instrumentation/logging.md

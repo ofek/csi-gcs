@@ -1,8 +1,12 @@
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: {{ .Values.driverName }}
-# https://kubernetes-csi.github.io/docs/csi-driver-object.html
+  app.kubernetes.io/name: {{ template "csi-gcs.name" . }}
+  app.kubernetes.io/managed-by: {{ .Release.Service }}
+  app.kubernetes.io/instance: {{ .Release.Name }}
+  app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  helm.sh/chart: {{ template "csi-gcs.chart" . }}
 spec:
   attachRequired: false
   podInfoOnMount: true
