@@ -1,0 +1,14 @@
+{{- if .Values.priorityClass.create }}
+apiVersion: scheduling.k8s.io/v1
+description: Priority class for the GCS driver
+kind: PriorityClass
+metadata:
+  name: {{ include "csi-gcs.priorityClassName" . }}
+  app.kubernetes.io/name: {{ template "csi-gcs.name" . }}
+  app.kubernetes.io/managed-by: {{ .Release.Service }}
+  app.kubernetes.io/instance: {{ .Release.Name }}
+  app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  helm.sh/chart: {{ template "csi-gcs.chart" . }}
+preemptionPolicy: Never
+value: {{ .Values.priorityClass.value }}
+{{- end }}
