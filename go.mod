@@ -5,7 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/storage v1.30.1
 	github.com/container-storage-interface/spec v1.7.0
-	github.com/kubernetes-csi/csi-lib-utils v0.12.0
+	github.com/kubernetes-csi/csi-lib-utils v0.13.0
 	github.com/kubernetes-csi/csi-test/v3 v3.1.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.27.6
