@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1beta1
+kind: CSIDriver
+metadata:
+  name: {{ .Values.driverName }}
+# https://kubernetes-csi.github.io/docs/csi-driver-object.html
+spec:
+  attachRequired: false
+  podInfoOnMount: true
